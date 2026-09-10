@@ -34,10 +34,13 @@ export default async function Page() {
         <AnchorCarouselSection
           key={slug}
           categoryTitle={title}
+          categorySlug={slug}
           // Same _key: string vs null looseness footer.tsx already lives
           // with when passing this query result's link field along.
           data={home?.[slug] as any}
-          tones={pickRandomTones(3) as [string, string, string]}
+          // Only 2 tones needed now — the middle/intro view is always a
+          // flat white background/icon tile, not an image or tone.
+          tones={pickRandomTones(2) as [string, string]}
         />
       ))}
     </div>

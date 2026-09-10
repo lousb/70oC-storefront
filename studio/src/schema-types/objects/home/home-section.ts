@@ -15,6 +15,7 @@ export const homeSection = defineType({
       name: "image1",
       title: "Image 1",
       type: "picture",
+      description: "Slide 1 — shown with the (locked) Section Name.",
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -22,29 +23,27 @@ export const homeSection = defineType({
       title: "Section Name",
       type: "string",
       readOnly: true,
-      description: "Locked — set automatically for this section.",
-    }),
-    defineField({
-      name: "image2",
-      title: "Image 2",
-      type: "picture",
+      description: "Slide 1 — locked, set automatically for this section.",
     }),
     defineField({
       name: "sectionIntro",
       title: "Section Introduction",
       type: "text",
       rows: 3,
+      description: "Slide 2 — always a plain white background with this section's icon, no image.",
     }),
     defineField({
       name: "image3",
       title: "Image 3",
       type: "picture",
+      description: "Slide 3 — shown with the Section Description.",
     }),
     defineField({
       name: "sectionDescription",
       title: "Section Description",
       type: "text",
       rows: 4,
+      description: "Slide 3 — shown with Image 3.",
     }),
     defineField({
       name: "link",

@@ -38,6 +38,61 @@
   inset: 0;
 }
 
+/* Middle/intro view (index 1) is always a flat white background — there
+   is no image field for it in the schema, by design. */
+.slideWhite {
+  position: absolute;
+  inset: 0;
+  background-color: #fff;
+}
+
+/* The intro view's icon is placed on the same --grid-columns track the
+   rest of the site is built on (see footer.module.css / floating-logo)
+   rather than sized off the viewport, so it stays aligned to the grid
+   at every breakpoint. Mirrors globals.css's mobile-first breakpoint:
+   8 columns / 5px gutter below 769px, 18 columns / 10px gutter above. */
+.introIconGrid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  padding-inline: var(--grid-margin);
+  align-items: center;
+  pointer-events: none;
+}
+
+/* Mobile: full-bleed 100vw, breaking out of the grid's own
+   padding-inline the same way .section breaks out of <main>'s — not
+   confined to the column track. Desktop: centered 6-of-18 columns.
+   Adjust the desktop span (and its matching start column, to keep it
+   centered) to resize. */
+.introIconBox {
+  position: relative;
+  grid-column: 1 / -1;
+  aspect-ratio: 1;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+@media (min-width: 769px) {
+  .introIconBox {
+    grid-column: 7 / span 6;
+    width: auto;
+    margin-left: 0;
+  }
+}
+
+.introIcon {
+  object-fit: contain;
+  /* The 02Icons PNGs are already black line art on a transparent
+     background, so — unlike the old categories/ SVGs — no invert
+     needed here. */
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
 /* ---- text — all 3 views (name / intro / description) share this same
    centered, same-size treatment, crossfading with the active view ---- */
 
@@ -62,10 +117,25 @@
   text-align: center;
   opacity: 0;
   transition: opacity 0.4s ease;
+  /* .textOverlay (the wrapper) is pointer-events: none so the empty
+     space around the text doesn't block clicks through to the slide
+     background/thumbnails. All 3 views' text sits stacked in this same
+     spot though, so only the active (visible) one should opt back into
+     pointer-events — otherwise an inactive, invisible paragraph (later
+     in the DOM) sits on top and eats clicks/selection meant for the
+     visible one underneath it. */
+  pointer-events: none;
 }
 
 .overlayText[data-active="true"] {
   opacity: 1;
+  pointer-events: auto;
+}
+
+/* Intro view (index 1) sits on the flat white slide, so it needs dark
+   text instead of the white text the image/tone views use. */
+.overlayTextOnWhite {
+  color: var(--color-text, #000);
 }
 
 /* ---- thumbnails + views 2/3 text, vertically centered at the left ---- */
@@ -82,6 +152,13 @@
   align-items: center;
   gap: 24px;
   color: #fff;
+  transition: color 0.3s ease;
+}
+
+/* The intro/white view (index 1) is active — flip the thumbnail row +
+   link text to dark so it stays legible on the white slide behind it. */
+.content[data-on-white="true"] {
+  color: var(--color-text, #000);
 }
 
 .thumbnails {
@@ -117,6 +194,20 @@
 .thumbnailTone {
   position: absolute;
   inset: 0;
+}
+
+/* Middle/intro thumbnail (index 1) — always the category icon on a
+   white tile, never an image crop or tone. */
+.thumbnailWhite {
+  background-color: #fff;
+}
+
+.thumbnailIcon {
+  object-fit: contain;
+  padding: 18%;
+  /* The 02Icons PNGs are already black line art on a transparent
+     background, so — unlike the old categories/ SVGs — no invert
+     needed here. */
 }
 
 .linkRow {

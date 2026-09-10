@@ -94,7 +94,6 @@ export type LinkFieldsType = {
 const homeSectionFields = /* groq */ `
   sectionName,
   "image1": image1{asset, crop, hotspot, alt},
-  "image2": image2{asset, crop, hotspot, alt},
   "image3": image3{asset, crop, hotspot, alt},
   sectionIntro,
   sectionDescription,
