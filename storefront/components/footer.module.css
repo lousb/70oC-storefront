@@ -1,0 +1,222 @@
+/*
+  Footer grid, built on the universal column tokens from styles/globals.css
+  (--grid-columns / --grid-margin / --grid-gutter).
+
+  Row order differs by breakpoint (see FooterIconRow's DOM position and
+  the grid-row overrides below):
+    Mobile  — Shop, Information, Connect (each a label|list 2-col split,
+              full width), then the icon row full width, then Newsletter.
+    Desktop — icon row on its own row, centered as a group on screen
+              (not tied to a column span); Shop (1–4), Information
+              (5–12), Connect (13–14), Newsletter (15–18) share the row
+              below it.
+*/
+
+.footer {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  row-gap: 48px;
+  padding-inline: var(--grid-margin);
+  padding-block: 56px 40px;
+
+  /* Full-height footer: fills the viewport minus 100px on every screen
+     size. min-height (not height) so it still grows if content ever
+     needs more room than that on small screens, instead of clipping. */
+  min-height: 100vh;
+      align-content: end;
+    row-gap: 48px;
+    min-height: 100vh;
+    padding-top: 56px;
+    padding-bottom: 104px;
+
+  /* Clips the icon row while it's translated above the footer, before
+     its slide-in-from-the-top reveal (desktop only — see .iconRow). */
+  overflow: hidden;
+
+  /* Dark treatment scoped to the footer for now — the rest of the site
+     is still on the light template colors until we get to those components. */
+  background: #000000;
+  color: #ffffff;
+}
+
+.footer :global(a):hover {
+  opacity: 0.7;
+}
+
+/* ---- icon row ---- */
+
+.iconRow {
+  grid-column: 1 / -1;
+  grid-row: 4; /* mobile: after Shop/Information/Connect, before Newsletter */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.iconLink {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.iconLink img {
+  width: 32px;
+  height: 32px;
+}
+
+/* ---- shop / information / connect / newsletter ---- */
+
+.section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--grid-gutter);
+  align-content: start;
+}
+
+.shop {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.info {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.connect {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.newsletter {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  display: block;
+}
+
+.label {
+  font-size: 1em;
+  font-weight: 400;
+  margin: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Shown in place of a column's real links when Sanity has none yet,
+   so the grid still previews correctly before content is filled in. */
+.placeholder {
+  opacity: 0.4;
+}
+
+@media (min-width: 769px) {
+  .footer {
+    row-gap: 64px;
+    /* Explicit rows instead of align-content: space-between — the icon
+       row's row (1fr) takes all the leftover height above the link
+       columns, and .iconRow centers itself within that row below. The
+       columns row (auto) stays sized to its own content, right after
+       it — i.e. pinned to the bottom, same end result as before. */
+    grid-template-rows: 1fr auto;
+    align-content: normal;
+  }
+
+  .iconRow {
+    grid-row: 1;
+    align-self: center;
+    /* On the grid like everything else now: left 3 icons sit in
+       columns 6–8 (justified start), right 3 in columns 11–13
+       (justified end) — symmetric about the 18-column grid's center,
+       independent of icon count via explicit nth-child placement.
+       Starts translated above the (clipped) footer and fades/slides
+       down into place once scrolled into view; see FooterIconRow. */
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), 1fr);
+    column-gap: var(--grid-gutter);
+    transform: translateY(-150%);
+    opacity: 0;
+    transition:
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.9s ease;
+  }
+
+  .iconRow.iconRowInView {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Three pairs of icons (left-aligned + right-aligned within a
+     2-column cell), each pair separated by a 1-column gap, centered
+     across the 18-column grid: columns 6–13 hold the pairs (5 empty
+     margin columns on each side). */
+  .iconLink:nth-child(1) {
+    grid-column: 6;
+    justify-self: start;
+  }
+
+  .iconLink:nth-child(2) {
+    grid-column: 7;
+    justify-self: end;
+  }
+
+  .iconLink:nth-child(3) {
+    grid-column: 9;
+    justify-self: start;
+  }
+
+  .iconLink:nth-child(4) {
+    grid-column: 10;
+    justify-self: end;
+  }
+
+  .iconLink:nth-child(5) {
+    grid-column: 12;
+    justify-self: start;
+  }
+
+  .iconLink:nth-child(6) {
+    grid-column: 13;
+    justify-self: end;
+  }
+
+  .iconLink img {
+    width: min(2.75vw, 40px);
+    height: min(2.75vw, 40px);
+  }
+
+  .section {
+    display: block;
+  }
+
+  .list {
+    margin-top: 16px;
+  }
+
+  .shop {
+    grid-row: 2;
+    grid-column: 1 / span 4;
+  }
+
+  .info {
+    grid-row: 2;
+    grid-column: 5 / span 8;
+  }
+
+  .connect {
+    grid-row: 2;
+    grid-column: 13 / span 2;
+  }
+
+  .newsletter {
+    grid-row: 2;
+    grid-column: 15 / span 4;
+  }
+}

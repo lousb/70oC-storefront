@@ -1,0 +1,229 @@
+@import url("./reset.css");
+@import url("./utils.css");
+
+/* New page slides in from the right */
+@keyframes slide-in {
+  from {
+    transform: translateY(4vw);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Old page slides out to the left */
+@keyframes slide-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-4vw);
+    opacity: 0;
+  }
+}
+
+
+::view-transition-old(root) {
+  animation: 400ms ease both slide-out;
+}
+
+::view-transition-new(root) {
+  animation: 400ms ease both slide-in;
+}
+
+:root {
+  --color-text: #000000;
+  --color-text-muted: #878580;
+  --color-bg: #ffffff;
+
+  --main-gap: 1ch;
+  --main-padding: 0.5ch;
+
+  --header-z-index: 10;
+  --title-z-index: 9;
+
+  /* Base typography — 16px everywhere. --font-abc-rom is set on <html>
+     in app/layout.tsx via next/font/local, loading the ABC Rom trial
+     file from public/fonts/. */
+  --font-size: 16px;
+  --font-sans-serif: var(--font-abc-rom), "Arial", ui-sans-serif, system-ui, sans-serif;
+
+  /* Universal column grid, mobile-first.
+     Desktop: 18 columns / 20px margin / 10px gutter
+     Mobile:   8 columns / 20px margin /  5px gutter
+     Breakpoint (769px) is repeated in component CSS files since plain
+     CSS custom properties can't be read inside @media conditions. */
+  --grid-columns: 8;
+  --grid-margin: 20px;
+  --grid-gutter: 5px;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --grid-columns: 18;
+    --grid-gutter: 10px;
+  }
+}
+
+/* Universal grid utility — opt in per component as we rebuild them.
+   Sets up the column tracks/margins; a component defines its own
+   grid-column placements on top of this. */
+.site-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  padding-inline: var(--grid-margin);
+}
+
+/* The 20px grid margin applies to every screen size (mobile and desktop
+   share the same margin value, only the gutter/column-count differ), so
+   this needs no media query. Covers page content; header/footer set
+   their own padding-inline to the same token (see layout.module.css /
+   footer.module.css). */
+main {
+  padding-inline: var(--grid-margin);
+}
+body {
+  /* mix-blend-mode needs an actual painted backdrop to difference
+     against — without this, any part of the page with no element
+     background of its own (just the browser's default canvas fill)
+     gives the floating logo/header nothing real to blend with, so
+     the white text/icons just sit inert and invisible instead of
+     inverting to black. */
+  background-color: var(--color-bg);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
+  gap: var(--main-gap);
+  padding-inline: var(--main-gap);
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    padding-inline: calc(var(--main-gap) / 2);
+  }
+}
+
+.editorial-block {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+
+  @media (max-width: 768px) {
+    aspect-ratio: 4 / 3;
+  }
+
+  @media (max-width: 480px) {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+.text-content {
+  position: absolute;
+  top: 50%;
+  padding: var(--main-padding);
+}
+
+.product-card {
+  background-color: #F1F1F1;
+  position: relative;
+  aspect-ratio: 0.7;
+  margin: auto;
+
+  img{
+    mix-blend-mode: multiply;
+  }
+  
+
+  @media (max-width: 480px) {
+    aspect-ratio: 0.8;
+  }
+}
+
+.product-card-image{
+    mix-blend-mode: multiply;
+  }
+
+/* content-row mobile */
+@media (max-width: 768px) {
+  .related-products{
+  padding-top:60px !important; 
+}
+  [data-content-row] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-content-row] > * {
+    grid-column: span 1 !important;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  [data-image-block-container] {
+    aspect-ratio: 0.7 !important;
+  }
+  .add-to-cart{
+    position: fixed !important;
+    bottom: 10px;
+    left: 10px;
+    z-index: 9999;
+    width: calc(100% - 20px) !important;
+    margin-block: 0px !important;
+    padding: 20px !important;
+  }
+}
+
+.product-block__hover {
+  opacity: 0;
+}
+
+.product-block:has(.product-block__hover):hover .product-block__primary {
+  opacity: 0;
+}
+
+.product-block:has(.product-block__hover):hover .product-block__hover {
+  opacity: 1;
+}
+
+mux-player {
+  --playback-rate-menu-button: none;
+  --pip-button: none;
+  --seek-backward-button: none;
+  --seek-forward-button: none;
+  --fullscreen-button: none;
+  --volume-range: none;
+  --rendition-menu-button: none;
+  --media-object-fit: cover;
+  --media-object-position: center;
+  --controls: none;
+}
+
+.post-cover{
+  aspect-ratio: 5 / 4 !important;
+}
+
+
+
+.blog-fullwidth-block{
+
+}
+.blog-content-block{
+
+}
+.blog-post-page p, .blog-post-page h1{
+  width:75%;
+  font-size: 1.2rem;
+  padding-bottom:1ch;
+}
+.total-checkout{
+  padding-top:2rem;
+}

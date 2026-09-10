@@ -1,0 +1,43 @@
+.card {
+  display: block;
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: var(--font-size);
+}
+
+.captionLeft {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.index {
+  opacity: 0.4;
+}
+
+.category {
+  opacity: 0.4;
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price {
+  flex-shrink: 0;
+}

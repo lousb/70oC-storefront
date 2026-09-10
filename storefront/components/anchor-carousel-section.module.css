@@ -1,0 +1,149 @@
+/*
+  One 100vh, full-bleed "anchor" section per home category, with 3
+  toggleable views (image + section name / intro / description — see
+  anchor-carousel-section.tsx). The section itself breaks out of <main>'s
+  grid-margin padding to run edge-to-edge; the thumbnail/text cluster
+  re-applies that same margin so it still lines up with the rest of the
+  page's content.
+*/
+
+.section {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* ---- background slides — crossfade between the 3 views ---- */
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.slide[data-active="true"] {
+  opacity: 1;
+}
+
+.slideImage {
+  object-fit: cover;
+}
+
+.slideTone {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- text — all 3 views (name / intro / description) share this same
+   centered, same-size treatment, crossfading with the active view ---- */
+
+.textOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.overlayText {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(44ch, calc(100% - var(--grid-margin) * 2));
+  color: #fff;
+  font-size: var(--font-size);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.overlayText[data-active="true"] {
+  opacity: 1;
+}
+
+/* ---- thumbnails + views 2/3 text, vertically centered at the left ---- */
+
+/* Matches [DESKTOP] 1. Homepage.pdf exactly: the thumbnail trio +
+   whichever text is active sit flush left (grid margin), vertically
+   centered in the 100vh section — not bottom-anchored. */
+.content {
+  position: absolute;
+  left: var(--grid-margin);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: #fff;
+}
+
+.thumbnails {
+  display: flex;
+  /* No gap — the 3 thumbnails sit edge-to-edge as one continuous strip
+     in the reference. */
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.thumbnail {
+  position: relative;
+  width: clamp(56px, 4.5vw, 88px);
+  height: clamp(56px, 4.5vw, 88px);
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: none;
+  overflow: hidden;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.thumbnail:hover,
+.thumbnail[data-active="true"] {
+  opacity: 1;
+}
+
+.thumbnailImage {
+  object-fit: cover;
+}
+
+.thumbnailTone {
+  position: absolute;
+  inset: 0;
+}
+
+.linkRow {
+  flex-shrink: 0;
+}
+
+.linkRow a {
+  color: inherit;
+  font-size: var(--font-size);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- mobile ---- */
+
+@media (max-width: 768px) {
+  /* Overrides the desktop left/vertically-centered placement entirely:
+     on mobile the thumbnail trio sits centered horizontally, pinned
+     20px from the bottom (same inset convention as the header's own
+     fixed corners). */
+  .content {
+    left: 50%;
+    top: auto;
+    bottom: 20px;
+    transform: translateX(-50%);
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+}

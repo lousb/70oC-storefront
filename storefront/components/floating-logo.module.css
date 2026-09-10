@@ -1,0 +1,125 @@
+/*
+  Floating "70°C" mark, split into 3 independently-positioned SVGs (see
+  floating-logo.tsx for why). Sized with vw (never vh) so nothing warps
+  when viewport height changes (mobile browser chrome show/hide, etc).
+  All three pieces share the same height cap so they read as one
+  consistent mark regardless of each glyph's own aspect ratio.
+
+  Positioning lives on .hit (the <Link> wrapping each glyph) rather than
+  on the <img> itself, so pointer-events: auto (re-enabling clicks,
+  since .layer/.gridLayer are pointer-events: none) and the actual
+  screen position travel together — the click target is exactly the
+  visible SVG pixels, not the whole fixed layer.
+*/
+
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  pointer-events: none;
+
+  /* Reacts to whatever is behind it: black on a white background,
+     white on the footer's black background, no manual color-swapping
+     needed as the page scrolls underneath. The SVGs are loaded via
+     <img>, which can't inherit page CSS (color/currentColor don't
+     reach into an <img>-sourced SVG), so each file's fill is
+     hardcoded to white directly rather than relying on currentColor. */
+  mix-blend-mode: difference;
+}
+
+@media (max-width: 768px) {
+  .layer {
+    /* Above the mobile Menu/Cart takeover panels (z-index: 800, see
+       header-content.module.css / cart.module.css) so the "7"/"0"/"OC"
+       mark keeps showing on top of an open panel, same as
+       header-content's own corner triggers. */
+    z-index: 860;
+  }
+}
+
+/* Shared sizing for all three pieces — mobile-first, capped well
+   below the desktop breakpoint's viewport width so vw scaling only
+   matters in the narrow band right around it. */
+.icon {
+  display: block;
+  width: auto;
+  height: min(7vw, 26px);
+}
+
+@media (min-width: 769px) {
+  .icon {
+    height: min(4vw, 33px);
+  }
+}
+
+/* Re-enables clicks (parent layers are pointer-events: none) and
+   removes the anchor's default inline box so it hugs the image. */
+.hit {
+  display: block;
+  pointer-events: auto;
+}
+
+/* "7" — centered horizontally on every breakpoint, pinned from the
+   top on every breakpoint (not vertically centered). */
+.seven {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@media (min-width: 769px) {
+  .seven {
+    top: calc(20px + 2rem);
+  }
+}
+
+/* Full-viewport grid, mirroring the site's column tokens, used only to
+   place "0" and "OC" on desktop — see the mobile overrides below where
+   they leave the grid entirely for fixed corner placement. */
+.gridLayer {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  padding-inline: var(--grid-margin);
+  align-items: end;
+}
+
+/* Mobile: "0" bottom-left, "OC" bottom-right, 20px in from each edge. */
+.zero {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+}
+
+.oc {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+@media (min-width: 769px) {
+  /* "0" centered in column 6, "OC" centered in column 13, both
+     pinned 20px from the bottom of the viewport. */
+  .gridLayer {
+    padding-bottom: calc(20px + 2rem);
+  }
+
+  .zero {
+    position: static;
+    grid-column: 6;
+    justify-self: center;
+    bottom: auto;
+    left: auto;
+  }
+
+  .oc {
+    position: static;
+    grid-column: 13;
+    justify-self: center;
+    bottom: auto;
+    right: auto;
+  }
+}

@@ -1,0 +1,7 @@
+/* The header is now just a semantic <header> wrapper — all of its
+   actual content (description, nav, clock, weather, mobile menu,
+   cart) is rendered fixed/floating by <HeaderContent/>, so this
+   element itself has no box of its own (no background, no height). */
+.header {
+  display: contents;
+}
