@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef, useState } from "react";
 
 import { CloseIcon, ImageIcon, LinkIcon } from "@sanity/icons";
