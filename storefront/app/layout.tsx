@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 
 import type { Metadata } from "next";
-import { VisualEditing } from "next-sanity";
+import { VisualEditing } from "next-sanity/visual-editing";
 import { draftMode } from "next/headers";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next"
