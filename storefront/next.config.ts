@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+    // The `sanity` package (used only by the embedded /studio route's
+    // config + custom document actions) internally imports React's native
+    // `useEffectEvent` hook, which the react-server webpack build condition
+    // strips out - causing "useEffectEvent is not exported from react" during
+    // the build even though the Studio page/config is wrapped in a "use
+    // client" boundary. Marking it external here tells Next.js to leave it as
+    // a plain Node require() at runtime instead of webpack-bundling it against
+    // that condition, which sidesteps the incompatibility entirely.
+    serverExternalPackages: ["sanity"],
   experimental: {
     reactCompiler: true,
     viewTransition: true,
