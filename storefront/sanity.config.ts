@@ -6,6 +6,8 @@ import {
   type DocumentLocation,
 } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
+import { colorInput } from "@sanity/color-input";
+import { muxInput } from "sanity-plugin-mux-input";
 
 import { projectId, dataset } from "./sanity/api";
 import { customDocumentActions } from "../studio/src/custom-document-action";
@@ -19,13 +21,8 @@ import { singletonTypes } from "../studio/src/structure/singletons";
 // as possible; kept in sync by hand since the two workspaces are separate
 // npm packages and can't share this file outright.
 //
-// Deliberately NOT included yet, pending a smoke test:
-// - @sanity/vision (the GROQ playground) — cosmetic, low priority to add.
-// - @sanity/color-input / sanity-plugin-mux-input — both are only
-//   version-compatible with Sanity v5 via peer ranges that predate this
-//   app's v5 upgrade (color-input's installed copy still targets v3), so
-//   adding them is a follow-up once verified working, not a blocker for
-//   a functioning Studio.
+// Deliberately NOT included yet:
+// - @sanity/vision (the GROQ playground) - cosmetic, low priority to add.
 
 const homeLocation = { title: "Home", href: "/" } satisfies DocumentLocation;
 const shopLocation = { title: "Shop", href: "/products" } satisfies DocumentLocation;
@@ -137,7 +134,11 @@ export default defineConfig({
       },
     }),
     structureTool({ structure }),
+    colorInput(),
     customDocumentActions(),
+    muxInput({
+      mp4_support: "standard",
+    }),
   ],
   schema: {
     types: schemaTypes,
