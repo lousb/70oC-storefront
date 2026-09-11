@@ -17,6 +17,7 @@ import { Footer } from "../components/footer";
 import GridOverlay from "../components/grid-overlay";
 import { FloatingLogo } from "../components/floating-logo";
 import { HeaderContent } from "../components/header-content";
+import { HideOnStudio } from "../components/hide-on-studio";
 import localFont from 'next/font/local'
 import { CartProvider } from "./_cart/cart-context";
 import { MobilePanelProvider } from "../components/mobile-panel-context";
@@ -92,8 +93,10 @@ export default async function RootLayout({
       <body>
         {/* Dev aid: Option/Alt + G toggles a red grid overlay to check layout against the column grid. */}
         <GridOverlay />
-        {/* Floating, fixed "70°C" wordmark — first piece of the header. */}
-        <FloatingLogo />
+        {/* Floating, fixed "70°C" wordmark — first piece of the header. Hidden on /studio, which wants the full viewport to itself. */}
+        <HideOnStudio>
+          <FloatingLogo />
+        </HideOnStudio>
         {/* The <Toaster> component is responsible for rendering toast notifications used in /app/client-utils.ts and /app/components/DraftModeToast.tsx */}
         <Toaster />
         {isDraftMode && (
@@ -108,7 +111,9 @@ export default async function RootLayout({
         {/* We'll keep a static store to demonstrate functionality. For a complete e-commerce solution, the cart should have server state in the form of cookies */}
         <MobilePanelProvider>
         <CartProvider>
-          <Header />
+          <HideOnStudio>
+            <Header />
+          </HideOnStudio>
           <main>
             <Suspense fallback={null}>
             <LenisProvider>
@@ -118,8 +123,10 @@ export default async function RootLayout({
               </LenisProvider>
             </Suspense>
            </main>
-         
-          <Footer />
+
+          <HideOnStudio>
+            <Footer />
+          </HideOnStudio>
         </CartProvider>
         </MobilePanelProvider>
         <Analytics />
