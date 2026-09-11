@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     // that condition, which sidesteps the incompatibility entirely.
     serverExternalPackages: ["sanity"],
   experimental: {
-    reactCompiler: true,
+        reactCompiler: { compilationMode: "annotation" }, // Sanity Studio's own components (pulled in via studio/src/custom-document-action) weren't authored for React Compiler and get miscompiled under the default "infer" mode, crashing /studio at runtime with "Cannot read properties of null (reading 'useMemoCache')". Annotation mode only compiles files that explicitly opt in with a "use memo" directive, so Studio's code is left untouched.
     viewTransition: true,
     // typedRoutes: true,
   },
