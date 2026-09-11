@@ -1,4 +1,4 @@
-import { defineLive } from "next-sanity/live";
+import { defineLive } from "next-sanity";
 import { client } from "../../sanity/client";
 import { token } from "../../sanity/token";
 
