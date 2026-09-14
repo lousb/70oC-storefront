@@ -22,7 +22,7 @@ import { singletonTypes } from "../studio/src/structure/singletons";
 // npm packages and can't share this file outright.
 //
 // Deliberately NOT included yet:
-// - @sanity/vision (the GROQ playground) - cosmetic, low priority to add.
+// - @sanity/vision (the GROQ playground) — cosmetic, low priority to add.
 
 const homeLocation = { title: "Home", href: "/" } satisfies DocumentLocation;
 const shopLocation = { title: "Shop", href: "/products" } satisfies DocumentLocation;
@@ -44,6 +44,7 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
 }
 
 export default defineConfig({
+  basePath: "/studio",
   name: "default",
   title: "70oC",
   projectId,
