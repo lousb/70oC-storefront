@@ -1,9 +1,11 @@
 "use client";
 
 import NextImage from "next/image";
-import MuxPlayer from "@mux/mux-player-react";
 import { urlForImage } from "../sanity/utils";
 
+// Video (Mux) support has been removed — mediaType/video are still accepted
+// here so existing call sites don't need to change, but only "image" ever
+// renders anything now.
 type MediaItemProps = {
   mediaType: "image" | "video";
   image?: {
@@ -24,46 +26,10 @@ type MediaItemProps = {
 export function MediaItem({
   mediaType,
   image,
-  video,
   alt = "",
   sizes = "100vw",
   priority = false,
 }: MediaItemProps) {
-  if (mediaType === "video" && video?.playbackId) {
-    // fallback aspect ratio
-    let aspectRatio = video.aspectRatio || "16:9";
-    const [w, h] = aspectRatio.split(":").map(Number);
-    const paddingTop = (h / w) * 100; // % for padding-top trick
-
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%", // reserves space
-          overflow: "hidden",
-        }}
-      >
-        <MuxPlayer
-          playbackId={video.playbackId}
-          autoPlay="muted"
-          streamType="on-demand"
-          loop
-          playsInline
-          controls={false}
-          poster={`https://image.mux.com/${video.playbackId}/thumbnail.png?time=0`}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      </div>
-    );
-  }
-
   if (mediaType === "image" && image) {
     const src = urlForImage(image)?.url();
     if (!src) return null;
