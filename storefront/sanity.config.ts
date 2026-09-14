@@ -7,7 +7,6 @@ import {
 } from "sanity/presentation";
 import { structureTool } from "sanity/structure";
 import { colorInput } from "@sanity/color-input";
-import { muxInput } from "sanity-plugin-mux-input";
 
 import { projectId, dataset } from "./sanity/api";
 import { customDocumentActions } from "../studio/src/custom-document-action";
@@ -137,9 +136,6 @@ export default defineConfig({
     structureTool({ structure }),
     colorInput(),
     customDocumentActions(),
-    muxInput({
-      mp4_support: "standard",
-    }),
   ],
   schema: {
     types: schemaTypes,
