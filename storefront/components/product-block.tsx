@@ -3,7 +3,6 @@
 import NextImage from "next/image";
 import NextLink from "next/link";
 import Price from "./price";
-import MuxPlayer from "@mux/mux-player-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,9 +13,8 @@ gsap.registerPlugin(ScrollTrigger);
 gsap.ticker.lagSmoothing(0);
 
 type HoverMedia = {
-  mediaType: "image" | "video";
+  mediaType: "image";
   imageUrl?: string | null;
-  playbackId?: string | null;
 };
 
 type ProductBlockProps = {
@@ -44,7 +42,7 @@ export function ProductBlock({ product }: ProductBlockProps) {
   if (!product) return null;
 
   const hover = product.hoverMedia;
-  const hasHover = hover && (hover.imageUrl || hover.playbackId);
+  const hasHover = hover && hover.imageUrl;
   const isMobile = useIsMobile();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -68,11 +66,8 @@ export function ProductBlock({ product }: ProductBlockProps) {
 
   const slides = [
     { type: "image" as const, src: product.imageUrl },
-    ...(hasHover && hover.mediaType === "image" && hover.imageUrl
+    ...(hasHover && hover.imageUrl
       ? [{ type: "image" as const, src: hover.imageUrl }]
-      : []),
-    ...(hasHover && hover.mediaType === "video" && hover.playbackId
-      ? [{ type: "video" as const, playbackId: hover.playbackId }]
       : []),
   ];
 
@@ -134,53 +129,25 @@ export function ProductBlock({ product }: ProductBlockProps) {
               className="product-card-image"
               style={{ display: "flex", height: "100%" }}
             >
-              {slides.map((slide, i) =>
-                slide.type === "image" ? (
-                  <div
-                    key={i}
-                    style={{
-                      position: "relative",
-                      minWidth: "100%",
-                      height: "100%",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <NextImage
-                      src={slide.src}
-                      fill
-                      alt={`${product.title} view ${i + 1}`}
-                      style={{ objectFit: "cover" }}
-                      sizes="100vw"
-                    />
-                  </div>
-                ) : (
-                  <div
-                    key={i}
-                    style={{
-                      position: "relative",
-                      minWidth: "100%",
-                      height: "100%",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <MuxPlayer
-                      playbackId={slide.playbackId}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        pointerEvents: "none",
-                      }}
-                    />
-                  </div>
-                )
-              )}
+              {slides.map((slide, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: "relative",
+                    minWidth: "100%",
+                    height: "100%",
+                    flexShrink: 0,
+                  }}
+                >
+                  <NextImage
+                    src={slide.src}
+                    fill
+                    alt={`${product.title} view ${i + 1}`}
+                    style={{ objectFit: "cover" }}
+                    sizes="100vw"
+                  />
+                </div>
+              ))}
             </div>
 
             {/* ✅ DOTS */}
@@ -223,7 +190,7 @@ export function ProductBlock({ product }: ProductBlockProps) {
               className="product-block__primary"
             />
 
-            {hasHover && hover.mediaType === "image" && hover.imageUrl && (
+            {hasHover && hover.imageUrl && (
               <NextImage
                 src={hover.imageUrl}
                 fill
@@ -231,25 +198,6 @@ export function ProductBlock({ product }: ProductBlockProps) {
                 style={{ objectFit: "cover" }}
                 sizes="25vw"
                 className="product-block__hover hover-image"
-              />
-            )}
-
-            {hasHover && hover.mediaType === "video" && hover.playbackId && (
-              <MuxPlayer
-                playbackId={hover.playbackId}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="product-block__hover hover-video"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  pointerEvents: "none",
-                }}
               />
             )}
           </>
@@ -280,14 +228,12 @@ export function ProductBlock({ product }: ProductBlockProps) {
           transition: opacity 0.4s ease;
         }
 
-        .hover-image,
-        .hover-video {
+        .hover-image {
           opacity: 0;
           pointer-events: none;
         }
 
-        .product-card:hover .hover-image,
-        .product-card:hover .hover-video {
+        .product-card:hover .hover-image {
           opacity: 1;
         }
 
