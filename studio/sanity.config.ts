@@ -12,7 +12,6 @@ import { customDocumentActions } from "./src/custom-document-action";
 import { schemaTypes } from "./src/schema-types";
 import { structure } from "./src/structure";
 import { singletonTypes } from "./src/structure/singletons";
-import { muxInput } from "sanity-plugin-mux-input";
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || "5d2pzqv7";
 const dataset = process.env.SANITY_STUDIO_DATASET || "production";
@@ -130,9 +129,6 @@ export default defineConfig({
     visionTool({ title: "API" }),
     colorInput(),
     customDocumentActions(),
-    muxInput({
-      mp4_support: "standard",
-    }),
   ],
   schema: {
     types: schemaTypes,
