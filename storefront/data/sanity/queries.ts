@@ -35,7 +35,6 @@ const pageBuilderFields = /* groq */ `
       "hoverMedia": gallery[featuredHover == true][0].media {
         mediaType,
         "imageUrl": select(mediaType == "image" => image.asset->url),
-        "playbackId": select(mediaType == "video" => video.asset->playbackId),
       },
     }),
     // imageBlock
