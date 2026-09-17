@@ -7,11 +7,16 @@ export function ProductImage({
   objectFit = "contain",
   loading = "lazy",
 }: {
-  shopifyImage: Image;
+  shopifyImage?: Image | null;
   sizes?: string;
   objectFit?: string;
   loading?: "lazy" | "eager" | undefined;
 }) {
+  // Title/price-only products (no image uploaded in Shopify yet) render
+  // nothing here rather than crashing on a null image.
+  if (!shopifyImage?.url) {
+    return null;
+  }
   return (
     <NextImage
       loading={loading}

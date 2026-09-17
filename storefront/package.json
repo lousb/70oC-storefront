@@ -17,7 +17,6 @@
     "@mux/mux-player-react": "^3.13.0",
     "@sanity/client": "^7.2.1",
     "@sanity/image-url": "^1.1.0",
-    "@sanity/vision": "^5.31.2",
     "@vercel/analytics": "^2.0.1",
     "babel-plugin-react-compiler": "beta",
     "embla-carousel-react": "^8.6.0",

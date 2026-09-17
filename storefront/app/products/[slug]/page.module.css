@@ -2,29 +2,59 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--main-gap);
-  place-content: center;
-  place-items: start;
+  align-items: start;
   padding: var(--main-padding);
   & > * {
     width: 100%;
   }
-  & > :first-child {
-    aspect-ratio: 1.7;
-  }
 }
 
+/* Right column — the image stack (see Gallery). Explicit placement so it
+   sits on the right regardless of DOM order (kept first in the DOM so it
+   paints before the sticky text panel). */
+.galleryColumn {
+  grid-column: 2;
+  aspect-ratio: 1.7;
+}
+
+/* Left column — sticky text panel (title/price, description, notes, Add to
+   Cart, accordion). Matches Set-Up-Components/ProductPage: a ~300px column
+   pinned to the left while the gallery stack scrolls past it. */
 .productDetails {
-  width: 50%;
-  margin-left: 50% !important;
+  grid-column: 1;
+  width: 100%;
   max-width: 300px;
   position: sticky;
   top: 60px;
   height: calc(100vh - 120px);
   padding-block-start: calc(var(--main-padding) * 2);
   display: flex;
-  justify-content: end;
+  justify-content: center;
   flex-direction: column;
   padding-inline: var(--main-padding);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--main-gap);
+}
+
+.categoryLabel {
+  opacity: 0.5;
+  margin: 0 0 0.2em;
+}
+
+.headerRow h1 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.priceTop {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .line {
@@ -58,6 +88,93 @@
   text-decoration: unset;
 }
 
+/* Top/Middle/Base Notes */
+.notesList {
+  margin: 1em 0 0;
+}
+
+.notesRow {
+  display: flex;
+  gap: 0.75em;
+  padding: 0.15em 0;
+}
+
+.notesLabel {
+  flex: 0 0 90px;
+  opacity: 0.6;
+}
+
+.notesValue {
+  opacity: 0.6;
+}
+
+/* Add to Cart — plain text row, same size/weight as every other line in the
+   panel (title, notes, accordion labels). No button chrome, matching the
+   reference's unstyled "Add To Cart" text. */
+.addToCart {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1em;
+  margin-block: 1em;
+  padding: 0.6em 0;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.addToCart:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Details / Ingredients / How To Use / Shipping / Where We Live */
+.accordion {
+  margin-top: 0.5em;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.accordionItem {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.accordionTrigger {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+  padding: 0.6em 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.accordionContent {
+  padding: 0 0 0.9em;
+  opacity: 0.75;
+  line-height: 1.5;
+
+  p {
+    margin: 0 0 0.75em;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
+  a {
+    text-decoration: underline;
+  }
+}
+
 /* Gallery */
 .galleryStack {
   display: flex;
@@ -86,82 +203,8 @@
   min-width: 0;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
-  .page {
-    grid-template-columns: 1fr;
-    padding: 0;
-    gap: 0;
-  }
-
-  .galleryStack {
-    display: none;
-  }
-
-  .galleryCarousel {
-    display: block;
-  }
-
-  .productDetails {
-    width: 100% !important;
-    margin-left: 0 !important;
-    max-width: 100%;
-    position: static;
-    height: auto;
-    padding: var(--main-padding);
-    padding-block-start: var(--main-padding);
-     padding: 20px;
-  }
-}
-
-
-.descriptionTop p{
+.descriptionTop p {
   opacity: 0.6;
-}
-
-@media (max-width: 768px) {
-  .descriptionTop {
-    padding-top: 0;
-     width:90%;
-    
-  }
-}
-
-.dots {
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  padding: 10px 0;
-}
-
-.dot {
-  display: block;
-  width: 6px;
-  height: 6px;
-  min-width: 6px;
-  min-height: 6px;
-  border-radius: 50%;
-  background: #c0c0c0;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-  appearance: none;
-  -webkit-appearance: none;
-  flex-shrink: 0;
-}
-
-.dotActive {
-  background: #000;
-  transform: scale(1.2);
-}
-
-.galleryCarouselViewport {
-  overflow: hidden;
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
 .dots {
@@ -196,4 +239,42 @@
 .dotActive {
   background: #fff;
   transform: scale(1.2);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .page {
+    grid-template-columns: 1fr;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* Only one track on mobile — reset explicit placement so nothing tries
+     to reach for a second column that no longer exists. */
+  .galleryColumn,
+  .productDetails {
+    grid-column: 1;
+  }
+
+  .galleryStack {
+    display: none;
+  }
+
+  .galleryCarousel {
+    display: block;
+  }
+
+  .productDetails {
+    width: 100% !important;
+    max-width: 100%;
+    position: static;
+    height: auto;
+    padding: 20px;
+    padding-block-start: var(--main-padding);
+  }
+
+  .descriptionTop {
+    padding-top: 0;
+    width: 90%;
+  }
 }

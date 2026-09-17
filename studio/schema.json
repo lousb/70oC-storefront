@@ -758,14 +758,6 @@
           },
           "optional": true
         },
-        "image2": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "inline",
-            "name": "picture"
-          },
-          "optional": false
-        },
         "sectionIntro": {
           "type": "objectAttribute",
           "value": {

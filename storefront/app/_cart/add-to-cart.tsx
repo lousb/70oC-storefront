@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Product, ProductVariant } from "../../shopify/types";
 import { useProduct } from "../products/[slug]/product-context";
 import { useCart } from "./cart-context";
+import s from "../products/[slug]/page.module.css";
 
 export function AddToCart({ product }: { product: Product }) {
   const { variants, availableForSale, priceRange } = product;
@@ -35,63 +36,50 @@ export function AddToCart({ product }: { product: Product }) {
 
   const disabled = !availableForSale || !selectedVariantId;
   const label = !availableForSale
-    ? "Unavailable"
+    ? "Sold Out"
     : !selectedVariantId
-    ? "Select an option"
-    : added
-    ? "Added"
+    ? "Select option"
     : "Add to Cart";
 
   return (
     <form action={handleAdd}>
       <button
-
-        className="add-to-cart"
+        className={s.addToCart}
         type="submit"
         disabled={disabled}
-        aria-label={label}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          background: disabled ? "#888" : "black",
-          color: "white",
-          border: "none",
-          padding: "0.85rem 1rem",
-          cursor: disabled ? "not-allowed" : "pointer",
-          fontSize: "0.85rem",
-          letterSpacing: "0.04em",
-          transition: "background 0.2s ease",
-          overflow: "hidden",
-          position: "relative",
-          borderRadius: "4px",
-          marginBlock: "1rem",
-        }}
+        aria-label={added ? "Added" : label}
       >
         {/* Price left */}
         <span
           style={{
-            opacity: added ? 0 : 1,
-            transform: added ? "translateY(-100%)" : "translateY(0)",
-            transition: "opacity 0.25s ease, transform 0.25s ease",
+            position: "relative",
+            overflow: "hidden",
+            height: "1.2em",
             display: "inline-block",
           }}
         >
-          {price}
-        </span>
-        <span
+          <span
+            style={{
+              display: "block",
+              transform: added ? "translateY(-100%)" : "translateY(0)",
+              transition: "transform 0.25s ease",
+            }}
+          >
+            {price}
+          </span>
+          <span
             style={{
               display: "block",
               position: "absolute",
               top: "100%",
-              left: '0.85rem',
-              transform: added ? "translateY(-175%)" : "translateY(0)",
+              left: 0,
+              transform: added ? "translateY(-100%)" : "translateY(0)",
               transition: "transform 0.25s ease",
             }}
           >
             Added
           </span>
+        </span>
 
         {/* Label right — slides up on added */}
         <span style={{ position: "relative", height: "1.2em", overflow: "hidden", display: "inline-block" }}>
@@ -102,9 +90,8 @@ export function AddToCart({ product }: { product: Product }) {
               transition: "transform 0.25s ease",
             }}
           >
-            {!availableForSale ? "Sold Out" : !selectedVariantId ? "Select option" : "Add to Cart"}
+            {label}
           </span>
-          
         </span>
       </button>
     </form>

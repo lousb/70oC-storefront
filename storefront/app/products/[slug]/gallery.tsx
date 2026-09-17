@@ -18,7 +18,7 @@ export function Gallery({
   sanityGallery = [],
 }: {
   variants?: any[];
-  featuredImage: Image;
+  featuredImage?: Image | null;
   sanityGallery?: SanityGalleryItem[];
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", dragFree: false });
@@ -40,14 +40,18 @@ export function Gallery({
       key: "featured",
       content: (
         <div style={{ position: "relative", width: "100%", aspectRatio: "4/5", backgroundColor: "#f1f1f1" }}>
-          <NextImage
-            src={featuredImage.url}
-            fill
-            alt={featuredImage.altText ?? ""}
-            style={{ objectFit: "cover", mixBlendMode: "multiply" }}
-            sizes="(max-width: 768px) 100vw, 50vw"
-            priority
-          />
+          {/* Title/price-only products (no image uploaded in Shopify yet)
+              simply show the wrapper's flat grey background below. */}
+          {featuredImage?.url && (
+            <NextImage
+              src={featuredImage.url}
+              fill
+              alt={featuredImage.altText ?? ""}
+              style={{ objectFit: "cover", mixBlendMode: "multiply" }}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
+            />
+          )}
         </div>
       ),
     },

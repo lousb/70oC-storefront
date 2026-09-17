@@ -138,7 +138,14 @@ const reshapeImages = (images: Connection<Image>, productTitle: string) => {
   });
 };
 
-const reshapeFeaturedImage = (image: Image, productTitle: string) => {
+const reshapeFeaturedImage = (image: Image | null | undefined, productTitle: string) => {
+  // Title/price-only products (the norm here — most imagery lives in Sanity,
+  // not Shopify) have no featuredImage at all. Return null (matching the
+  // Storefront API's own null) rather than crashing on `image.altText`, so
+  // callers can fall back to a placeholder.
+  if (!image) {
+    return null;
+  }
   return {
     ...image,
     altText: image.altText ?? `${productTitle}`,

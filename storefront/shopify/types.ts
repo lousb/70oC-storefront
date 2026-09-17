@@ -16,7 +16,9 @@ export type CartProduct = {
   id: string;
   handle: string;
   title: string;
-  featuredImage: Image;
+  // Title/price-only products (no image uploaded in Shopify yet) carry no
+  // featuredImage — see app/_cart/cart.tsx's placeholder fallback.
+  featuredImage: Image | null;
 };
 
 export type CartItem = {
@@ -130,7 +132,9 @@ export type ShopifyProduct = {
     minVariantPrice: Money;
   };
   variants: Connection<ProductVariant>;
-  featuredImage: Image;
+  // Title/price-only products (no image uploaded in Shopify yet) come back
+  // from the Storefront API with featuredImage: null.
+  featuredImage: Image | null;
   images: Connection<Image>;
   seo: SEO;
   tags: string[];

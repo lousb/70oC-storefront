@@ -114,12 +114,19 @@ export function Cart() {
                       return (
                         <li key={i} className={s.cartItem}>
                           <Link href={merchandiseUrl} onClick={closeCart} className={s.itemImageLink}>
-                            <Image
-                              width={80} height={80}
-                              alt={cartImage.altText || item.merchandise.product.title}
-                              src={cartImage.url}
-                              className={s.itemImage}
-                            />
+                            {/* Title/price-only products (no image uploaded
+                                in Shopify yet) show a flat placeholder box
+                                instead of crashing on a missing image. */}
+                            {cartImage?.url ? (
+                              <Image
+                                width={80} height={80}
+                                alt={cartImage.altText || item.merchandise.product.title}
+                                src={cartImage.url}
+                                className={s.itemImage}
+                              />
+                            ) : (
+                              <div className={s.itemImage} style={{ backgroundColor: "#f1f1f1" }} />
+                            )}
                           </Link>
 
                           {/* Desktop layout — unchanged */}

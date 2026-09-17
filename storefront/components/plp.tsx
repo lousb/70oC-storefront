@@ -30,13 +30,18 @@ export async function PLP(props: { collectionSlug?: string; tags: string[] }) {
               <article key={product.id}>
                 <Link href={`/products/${product.handle}`}>
                   <figure className="product-card">
-                    <NextImage
-                      src={product.featuredImage.url || ""}
-                      fill
-                      alt={`Image for product: ${product.title}`}
-                      objectFit="contain"
-                      sizes={"33vw"}
-                    />
+                    {/* Title/price-only products (no image uploaded in
+                        Shopify yet) just render the caption below, no
+                        image slot. */}
+                    {product.featuredImage?.url && (
+                      <NextImage
+                        src={product.featuredImage.url}
+                        fill
+                        alt={`Image for product: ${product.title}`}
+                        objectFit="contain"
+                        sizes={"33vw"}
+                      />
+                    )}
                     <figcaption>
                       <span>{product.title}</span>
                       <span>

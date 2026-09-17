@@ -1,9 +1,9 @@
 import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Link } from 'next-view-transitions'
 import { Suspense } from "react";
 import { PageBuilder } from "../../../components/page-builder";
+import { CustomPortableText } from "../../../components/custom-portable-text";
 import Price from "../../../components/price";
 import { sanityFetch } from "../../../data/sanity";
 
@@ -12,17 +12,29 @@ import {
   PRODUCT_METADATA_QUERY,
   PRODUCT_QUERY,
 } from "../../../data/sanity/queries";
-import { getProduct, getProducts, getProductRecommendations } from "../../../data/shopify";
+import { getProduct } from "../../../data/shopify";
 import { resolveOpenGraphImage } from "../../../sanity/utils";
-import { Product } from "../../../shopify/types";
 import { AddToCart } from "../../_cart/add-to-cart";
 import s from "./page.module.css";
 import { ProductProvider } from "./product-context";
 import { Gallery } from "./gallery";
-import { ProductImage } from "./product-image";
+import { Accordion, AccordionEntry } from "./accordion";
 
 type Props = {
   params: Promise<{ slug: string }>;
+};
+
+// Mirrors studio/src/schema-types/constants.ts HOME_CATEGORIES — the two
+// workspaces don't share code, so this small display-label lookup is
+// duplicated here the same way app/products/page.tsx already duplicates the
+// anchor list.
+const CATEGORY_LABELS: Record<string, string> = {
+  PRESSURE: "Pressure",
+  FLOW: "Flow",
+  MOMENTUM: "Momentum",
+  REPETITION: "Repetition",
+  BALANCE: "Balance",
+  BLOOM: "Bloom",
 };
 
 export async function generateStaticParams() {
@@ -70,19 +82,12 @@ export default async function Page(props: Props) {
     return notFound();
   }
 
-const allProducts = await getProducts({ sortKey: "TITLE", reverse: false, query: "" });
-const otherProducts = allProducts.filter(p => p.id !== product.id);
-const seed = product.id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-const relatedProducts = [0, 1, 2].map(i => otherProducts[(seed + i) % otherProducts.length]).filter(Boolean);
-
-console.log("relatedProducts", relatedProducts.length);
-
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.title,
     description: product.description,
-    image: product.featuredImage.url,
+    image: product.featuredImage?.url,
     offers: {
       "@type": "AggregateOffer",
       availability: product.availableForSale
@@ -93,6 +98,81 @@ console.log("relatedProducts", relatedProducts.length);
       lowPrice: product.priceRange.minVariantPrice.amount,
     },
   };
+
+  // --- Everything below feeds the sticky left-hand text panel, matching
+  // Set-Up-Components/ProductPage's [DESKTOP]/[MOBILE] IPP 1A references
+  // (Category + Title / Price, description, Top/Middle/Base Notes, Add to
+  // Cart, then the Details/Ingredients/How To Use/Shipping/Where We Live
+  // accordion). The "Reviews Flyout" variant and star-rating summary are
+  // out of scope for now — no real review data exists yet.
+
+  const category = productPage?.category ? CATEGORY_LABELS[productPage.category] : null;
+
+  const notes: Array<{ label: string; values: string[] }> = [
+    { label: "Top Notes", values: productPage?.topNotes ?? [] },
+    { label: "Middle Notes", values: productPage?.middleNotes ?? [] },
+    { label: "Base Notes", values: productPage?.baseNotes ?? [] },
+  ].filter((n) => n.values.length > 0);
+
+  // "Details" is a flexible, possibly-multi-entry section: per-product
+  // productInformation, optionally complemented by the site-wide defaults
+  // from Settings — see product.tsx's overwriteDefaultInformationFields.
+  const detailsEntries =
+    productPage?.overwriteDefaultInformationFields === "noDefaults"
+      ? (productPage?.productInformation ?? []).map((entry) => ({ ...entry, source: "product" as const }))
+      : [
+          ...(productPage?.defaultProductInformation ?? []).map((entry) => ({ ...entry, source: "default" as const })),
+          ...(productPage?.productInformation ?? []).map((entry) => ({ ...entry, source: "product" as const })),
+        ];
+
+  const accordionItems: AccordionEntry[] = [
+    ...detailsEntries
+      .filter((entry) => entry.title && entry.content)
+      .map((entry) => ({
+        // _key is only unique within its own array (Settings' defaults vs
+        // this product's own entries), so prefix by source to keep React
+        // keys collision-free when the two lists are combined.
+        key: `${entry.source}-${entry._key}`,
+        title: entry.title as string,
+        content: <CustomPortableText value={entry.content as any} />,
+      })),
+    ...(productPage?.ingredients
+      ? [
+          {
+            key: "ingredients",
+            title: "Ingredients",
+            content: <p>{productPage.ingredients}</p>,
+          },
+        ]
+      : []),
+    ...(productPage?.howToUse?.content
+      ? [
+          {
+            key: "how-to-use",
+            title: "How To Use",
+            content: <CustomPortableText value={productPage.howToUse.content as any} />,
+          },
+        ]
+      : []),
+    ...(productPage?.shipping?.content
+      ? [
+          {
+            key: "shipping",
+            title: "Shipping",
+            content: <CustomPortableText value={productPage.shipping.content as any} />,
+          },
+        ]
+      : []),
+    ...(productPage?.whereWeLive?.content
+      ? [
+          {
+            key: "where-we-live",
+            title: "Where We Live",
+            content: <CustomPortableText value={productPage.whereWeLive.content as any} />,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <Suspense>
@@ -105,7 +185,7 @@ console.log("relatedProducts", relatedProducts.length);
       <ProductProvider>
         <div>
           <div className={s.page}>
-            <div className={s.gallery}>
+            <div className={s.galleryColumn}>
               <Gallery
                 variants={product.variants}
                 featuredImage={product.featuredImage}
@@ -113,7 +193,47 @@ console.log("relatedProducts", relatedProducts.length);
               />
             </div>
             <div className={s.productDetails}>
-              <ProductDescription product={product} relatedProducts={relatedProducts} />
+              <div className={s.description}>
+                <div className={s.descriptionTop}>
+                  <div className={s.headerRow}>
+                    <div>
+                      {category && <p className={s.categoryLabel}>{category}</p>}
+                      <h1>{product.title}</h1>
+                    </div>
+                    <p className={s.priceTop}>
+                      <Price
+                        amount={product.priceRange.minVariantPrice.amount}
+                        currencyCode={product.priceRange.minVariantPrice.currencyCode}
+                      />
+                    </p>
+                  </div>
+
+                  {!!product.descriptionHtml && (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: product.descriptionHtml ?? "",
+                      }}
+                    />
+                  )}
+
+                  {notes.length > 0 && (
+                    <dl className={s.notesList}>
+                      {notes.map(({ label, values }) => (
+                        <div key={label} className={s.notesRow}>
+                          <dt className={s.notesLabel}>{label}:</dt>
+                          <dd className={s.notesValue}>{values.join(", ")}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                </div>
+
+                <div style={{ width: "300px" }}>
+                  <AddToCart product={product} />
+                </div>
+
+                <Accordion items={accordionItems} />
+              </div>
             </div>
           </div>
           {!!productPage?.pageBuilder?.length && (
@@ -122,52 +242,5 @@ console.log("relatedProducts", relatedProducts.length);
         </div>
       </ProductProvider>
     </Suspense>
-  );
-}
-
-function ProductDescription({
-  product,
-  relatedProducts,
-}: {
-  product: Product;
-  relatedProducts: Product[];
-}) {
-  return (
-    <div className={s.description}>
-      <div className={s.descriptionTop}>
-        <h1>{product.title}</h1>
-        {!!product.descriptionHtml && (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: product.descriptionHtml ?? "",
-            }}
-          />
-        )}
-      </div>
-
-      <div style={{ width: "300px" }}>
-        <AddToCart product={product} />
-        {/* svg */}
-      </div>
-
-      {relatedProducts.length > 0 && (
-  <div style={{ display: "flex", gap: "1em", flexWrap: "nowrap", width: "100%" }} className="related-products">
-    {relatedProducts.slice(0, 3).map((related) => (
-      <Link key={related.handle} href={`/products/${related.handle}`} prefetch={true} style={{ flex: "1 1 0", minWidth: 0 }}>
-        <div className="product-card">
-          <ProductImage
-            shopifyImage={related.featuredImage}
-            objectFit="cover"
-            sizes="(min-width: 1024px) 20vw, (min-width: 768px) 25vw, (min-width: 640px) 33vw, (min-width: 475px) 50vw, 100vw"
-          />
-        </div>
-        <h3>{related.title}</h3>
-      </Link>
-    ))}
-  </div>
-)}
-
-      
-    </div>
   );
 }

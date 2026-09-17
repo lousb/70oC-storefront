@@ -163,16 +163,14 @@
 
 .thumbnails {
   display: flex;
-  /* No gap — the 3 thumbnails sit edge-to-edge as one continuous strip
-     in the reference. */
-  gap: 0;
+  gap: 2px;
   flex-shrink: 0;
 }
 
 .thumbnail {
   position: relative;
-  width: clamp(56px, 4.5vw, 88px);
-  height: clamp(56px, 4.5vw, 88px);
+  width: 60px;
+  height: 80px;
   padding: 0;
   border: none;
   cursor: pointer;
@@ -180,6 +178,31 @@
   overflow: hidden;
   opacity: 0.55;
   transition: opacity 0.2s ease;
+}
+
+/* Text sitting on top of thumbnails 1 and 3 (see anchor-carousel-section.tsx).
+   Thumbnail 2 (the intro/icon view) never gets one of these. */
+.thumbnailLabel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3px;
+  color: #fff;
+  line-height: 1.1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.thumbnailLabelTitle {
+  font-size: 4px;
+}
+
+.thumbnailLabelDescription {
+  font-size: 1px;
 }
 
 .thumbnail:hover,

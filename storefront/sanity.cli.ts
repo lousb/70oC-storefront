@@ -1,8 +1,10 @@
 /**
  * Sanity CLI config for the storefront workspace, needed only so the
  * "sanity typegen generate" step (run via the predev/prebuild npm
- * scripts) can find a project/dataset to introspect — the actual
- * Studio config lives in ./sanity.config.ts (embedded at /studio).
+ * scripts) can find a project/dataset to introspect — the actual Studio
+ * config (and schema) lives in the separate ../studio workspace; see
+ * sanity-typegen.json's "schema" path, which points at its extracted
+ * ../studio/schema.json rather than any config here.
  * Learn more: https://www.sanity.io/docs/cli
  */
 

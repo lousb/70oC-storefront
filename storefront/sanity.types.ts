@@ -146,7 +146,6 @@ export type HomeSection = {
   _type: "homeSection";
   image1: Picture;
   sectionName?: string;
-  image2: Picture;
   sectionIntro?: string;
   image3: Picture;
   sectionDescription?: string;

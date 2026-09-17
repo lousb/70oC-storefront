@@ -153,7 +153,7 @@ export function AnchorCarouselSection({
                 </button>
               );
             }
-            const src = urlForImage(image)?.width(160).height(160).fit("crop").url();
+            const src = urlForImage(image)?.width(240).height(320).fit("crop").url();
             const tone = i === 0 ? tones[0] : tones[1];
             return (
               <button
@@ -166,9 +166,23 @@ export function AnchorCarouselSection({
                 aria-label={`Show view ${i + 1} of ${categoryTitle}`}
               >
                 {src ? (
-                  <NextImage src={src} alt="" fill sizes="48px" className={s.thumbnailImage} />
+                  <NextImage src={src} alt="" fill sizes="60px" className={s.thumbnailImage} />
                 ) : (
                   <span className={s.thumbnailTone} style={{ backgroundColor: tone }} />
+                )}
+                {/* Thumbnail 1 (image1 view) carries the section title at
+                    4px; thumbnail 3 (image3/description view) carries the
+                    description copy at 1px. Thumbnail 2 (intro/icon view)
+                    stays text-free. */}
+                {i === 0 && (
+                  <span className={`${s.thumbnailLabel} ${s.thumbnailLabelTitle}`}>
+                    {`(${sectionName})`}
+                  </span>
+                )}
+                {i === 2 && (
+                  <span className={`${s.thumbnailLabel} ${s.thumbnailLabelDescription}`}>
+                    {descriptionText}
+                  </span>
                 )}
               </button>
             );
