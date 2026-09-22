@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import Price from "../../../components/price";
 import { AddToCart } from "../../_cart/add-to-cart";
@@ -9,21 +10,14 @@ import { ReviewsPanel } from "./reviews-panel";
 import { DEMO_RATING, DEMO_REVIEW_COUNT, formatRating } from "./reviews-data";
 import s from "./page.module.css";
 
-// Fixed order — mirrors studio/src/schema-types/constants.ts HOME_CATEGORIES
-// (the two workspaces don't share code). Used to pick the 3 small icons
-// below Add To Cart: the product's own category first, then the next two
-// in this cycle. There's no CMS field backing which 3 icons show here (not
-// part of the pseudo-schema this project is built from) — this is a
-// reasonable stand-in (and doubles as a soft cross-link) until that's
-// decided for real.
-const CATEGORY_ORDER = [
-  "pressure",
-  "flow",
-  "momentum",
-  "repetition",
-  "balance",
-  "bloom",
-];
+// A related product as shown in the small icon row below Add To Cart:
+// already stega-cleaned by page.tsx, iconSlug is the lowercased category
+// (matches public/icons/categories/<slug>.svg).
+export type RelatedProductIcon = {
+  slug: string;
+  title: string | null;
+  iconSlug: string;
+};
 
 export function ProductDetailsPanel({
   category,
@@ -34,6 +28,7 @@ export function ProductDetailsPanel({
   descriptionNode,
   accordionItems,
   categoryIconSlug,
+  relatedProducts = [],
   product,
 }: {
   category: string | null;
@@ -44,19 +39,11 @@ export function ProductDetailsPanel({
   descriptionNode: ReactNode;
   accordionItems: AccordionEntry[];
   categoryIconSlug?: string | null;
+  relatedProducts?: RelatedProductIcon[];
   product: Product;
 }) {
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
-  const iconSlugs = (() => {
-    const startIndex = categoryIconSlug
-      ? CATEGORY_ORDER.indexOf(categoryIconSlug)
-      : -1;
-    if (startIndex === -1) return CATEGORY_ORDER.slice(0, 3);
-    return [0, 1, 2].map(
-      (offset) => CATEGORY_ORDER[(startIndex + offset) % CATEGORY_ORDER.length],
-    );
-  })();
 
   // Desktop: the rating link covers the whole panel with the reviews
   // table (see .reviewsOverlay below). Mobile: the panel never overlays —
@@ -135,17 +122,37 @@ export function ProductDetailsPanel({
           </p>
         </div>
 
-        <div className={s.iconRow} aria-hidden="true">
-          {iconSlugs.map((slug) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={slug}
-              src={`/icons/categories/${slug}.svg`}
-              alt=""
-              className={s.smallIcon}
-            />
-          ))}
-        </div>
+        {/* This product's own category icon (100%), then up to 3 related
+            products (Sanity "Related Products" field) as their category
+            icons at 25%, each linking to that product. */}
+        {(categoryIconSlug || relatedProducts.length > 0) && (
+          <div className={s.iconRow}>
+            {categoryIconSlug && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/icons/categories/${categoryIconSlug}.svg`}
+                alt=""
+                aria-hidden="true"
+                className={s.smallIcon}
+              />
+            )}
+            {relatedProducts.map((related) => (
+              <Link
+                key={related.slug}
+                href={`/products/${related.slug}`}
+                className={s.relatedIconLink}
+                aria-label={related.title ?? related.slug}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/icons/categories/${related.iconSlug}.svg`}
+                  alt=""
+                  className={s.smallIcon}
+                />
+              </Link>
+            ))}
+          </div>
+        )}
 
         <Accordion items={accordionItems} />
       </div>

@@ -48,32 +48,58 @@ export function ProductSection({
     mm.add("(min-width: 769px)", () => {
       if (!sectionRef.current || !detailsRef.current) return;
 
-      const pinConfig = {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom bottom",
-      } as const;
+      const section = sectionRef.current;
+      const details = detailsRef.current;
 
+      // How far the panel's content runs past the bottom of the viewport
+      // (0 when it fits). Measured from .panelContent rather than the
+      // pinned element itself: GSAP locks the pinned element's height
+      // inline, and .reviewsOverlay (absolute, 100vh) would inflate its
+      // scrollHeight. BOTTOM_GAP keeps the last accordion row off the very
+      // bottom edge when the panel is taller than the screen.
+      const BOTTOM_GAP = 20;
+      const getOverflow = () => {
+        const content = details.querySelector(`.${s.panelContent}`);
+        if (!content) return 0;
+        const needed =
+          content.getBoundingClientRect().bottom -
+          details.getBoundingClientRect().top;
+        return Math.max(
+          0,
+          Math.ceil(needed + BOTTOM_GAP - window.innerHeight),
+        );
+      };
+
+      // Responsive to the panel's height (short screens, accordion open):
+      // if the panel fits, it pins at the top exactly as before. If it's
+      // taller than the viewport, it scrolls normally until its bottom
+      // is on screen, then pins there (GSAP freezes it at top: -overflow),
+      // so nothing is ever cut off. End is unchanged, so it still docks
+      // at the same point as the floating icon. Recomputed on every
+      // ScrollTrigger.refresh() - the accordion already calls that on
+      // open/close, and resizes trigger it too.
       const stDetails = ScrollTrigger.create({
-        ...pinConfig,
-        pin: detailsRef.current,
+        trigger: section,
+        start: () => {
+          const overflow = getOverflow();
+          // Lets .reviewsOverlay (absolute inside the panel) offset
+          // itself back to the viewport top while the panel is pinned
+          // above it. Set on the section, not the pinned element, since
+          // GSAP rewrites the pinned element's inline styles.
+          section.style.setProperty("--panel-overflow", `${overflow}px`);
+          return `top+=${overflow} top`;
+        },
+        end: "bottom bottom",
+        pin: details,
+        invalidateOnRefresh: true,
       });
 
-      // Same trigger/start/end as stDetails above - a second, independent
-      // pin (not a shared one) because this is a different element, but
-      // matching numbers mean it activates and releases at exactly the
-      // same scroll positions, so the icon pins and docks right alongside
-      // the panel instead of drifting out of sync with it.
-      const stIcon = iconBoxRef.current
-        ? ScrollTrigger.create({
-            ...pinConfig,
-            pin: iconBoxRef.current,
-          })
-        : null;
+      // The floating category icon is NOT GSAP-pinned: it pins/docks with
+      // CSS position: sticky inside .floatingIconTrack (see page.module.css),
+      // docking at the same scroll position this pin releases at.
 
       return () => {
         stDetails.kill();
-        stIcon?.kill();
       };
     });
 

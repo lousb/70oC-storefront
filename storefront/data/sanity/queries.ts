@@ -253,6 +253,11 @@ export const PRODUCT_QUERY = defineQuery(`
     "defaultProductInformation": *[ _type == 'settings'][0].defaultProductInformation,
     productInformation,
     category,
+    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{
+      "slug": store.slug.current,
+      "title": store.title,
+      category,
+    },
     description,
     ingredients,
     "howToUse": howToUse->{title, content},

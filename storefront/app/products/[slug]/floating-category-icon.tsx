@@ -55,13 +55,15 @@ export const FloatingCategoryIcon = forwardRef<HTMLDivElement, { slug: string }>
     }, []);
 
     return (
-      <div ref={ref} className={s.floatingIconBox} aria-hidden="true">
-        <img
-          ref={iconRef}
-          src={`/icons/02Icons/${slug}.png`}
-          alt=""
-          className={s.floatingIcon}
-        />
+      <div ref={ref} className={s.floatingIconTrack} aria-hidden="true">
+        <div className={s.floatingIconBox}>
+          <img
+            ref={iconRef}
+            src={`/icons/02Icons/${slug}.png`}
+            alt=""
+            className={s.floatingIcon}
+          />
+        </div>
       </div>
     );
   },

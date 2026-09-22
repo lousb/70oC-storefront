@@ -48,6 +48,31 @@ export const product = defineType({
       },
     }),
     defineField({
+      name: "relatedProducts",
+      title: "Related Products",
+      description:
+        "Up to 3 related products. Each shows as its category icon (at 25% opacity) next to this product's own icon under Add To Cart, linking to that product. A product with no Category set won't show an icon.",
+      type: "array",
+      of: [
+        {
+          type: "reference",
+          to: [{ type: "product" }],
+          options: {
+            // Can't relate a product to itself.
+            filter: ({ document }) => ({
+              filter: "!(_id in [$id, $draftId])",
+              params: {
+                id: (document?._id ?? "").replace(/^drafts\./, ""),
+                draftId: `drafts.${(document?._id ?? "").replace(/^drafts\./, "")}`,
+              },
+            }),
+          },
+        },
+      ],
+      validation: (Rule) => Rule.max(3).unique(),
+      group: "editorial",
+    }),
+    defineField({
       name: "description",
       title: "Description",
       description: "Optional editorial description. Overrides the Shopify description on the storefront when set.",

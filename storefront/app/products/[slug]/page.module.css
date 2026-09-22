@@ -186,6 +186,19 @@
   cursor: pointer;
 }
 
+/* Tick after the label for 1s after adding (data-tick is set by
+   add-to-cart.tsx). font: inherit via the button, so it matches the label. */
+.addToCart::after {
+  content: "\2713";
+  margin-left: 0.4em;
+  font: inherit;
+  line-height: 1.2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.addToCart[data-tick]::after {
+  opacity: 1;
+}
 .addToCart:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -217,7 +230,8 @@
 
 .accordionContent {
   padding: 0 0 0.9em;
-  opacity: 0.75;
+  opacity: 0.25;
+  font-size: 12px;
   line-height: 1.5;
 
   p {
@@ -423,116 +437,59 @@
   }
 }
 
-/* Floating category-icon watermark. A SIBLING of .productDetails, not a
-   child of it (see FloatingCategoryIcon/product-section) - pinned by its
-   own GSAP ScrollTrigger, matching .productDetails' pin/release timing
-   exactly, rather than by nesting inside it (see the comment on the rule
-   below for why). Desktop: offset + sized to land on grid columns 7-13
-   (6-of-18), computed relative to .page's own left edge (which sits on
-   column 1's start, same as .productDetails' own left edge). Mobile:
-   simpler near-full-width placement (.productDetails is already
-   ~edge-to-edge there, so no viewport breakout math is needed). Icon
-   treatment matches components/anchor-carousel-section.module.css's
-   introIconBox/.introIcon. */
-.floatingIconBox {
-  /* Absolute against .page (not .productDetails, like before) - and a
-     sibling of .productDetails in the DOM, not a child of it (see
-     product-section.tsx). GSAP pins THIS element with its own
-     ScrollTrigger (same trigger/start/end as .productDetails' own pin,
-     so they move in perfect lockstep - pinning, then docking back to
-     static flow, together). Nesting it inside .productDetails instead
-     would break mix-blend-mode: position: fixed (what .productDetails
-     becomes for the pin's duration) always opens a new stacking context,
-     which would trap this box's blend mode against only .productDetails'
-     own contents - never able to actually blend against the gallery
-     photo next to it (components/floating-logo.module.css uses this same
-     fixed-sibling-layer recipe, successfully, for the same reason - the
-     difference is that one is always pinned, this one pins/docks with
-     .productDetails instead).
-     top/left are already viewport-relative (vw/vh, plus the grid calc
-     below) - since .page's own top coincides with the true viewport top
-     at the exact scroll position where the pin starts (start: "top top"
-     is keyed off this same section), 50vh here lands at true viewport
-     center for the pinned phase, exactly as before.
-     No transform here (unlike .desktopDots' identical-looking top: 50vh
-     pairing below, which is safe because that one is small enough for
-     the bug to go unnoticed) - GSAP's pin measures this box's rendered
-     (post-transform) position to work out where to freeze it, then
-     switches it to position: fixed with an inline top - but the CSS
-     transform: translateY(-50%) itself is never removed, so it went on
-     applying a SECOND time on top of that fixed top for as long as this
-     stayed pinned, shifting the icon an extra half-height off-center
-     for the whole pinned phase and snapping visibly back into place the
-     instant it docked. The desktop override below bakes the same
-     half-height offset directly into `top` via calc() instead, so there
-     is no transform left for the pin to double up on. */
+/* Floating category-icon watermark. Pinned with CSS position: sticky
+   instead of a GSAP pin. The GSAP pin fought the !important left/top
+   below: while fixed, GSAP's inline viewport left got overridden by the
+   .page-relative left (so it sat 20px, one grid margin, left of centre),
+   and on release the absolute box snapped back to a different spot
+   (the dock jump). Sticky has neither problem and needs no JS.
+
+   .floatingIconTrack is an absolute overlay over .page (the product
+   section). Its bottom is inset by the same amount the icon sits below
+   the viewport top, so the sticky icon docks at exactly the scroll
+   position where the section bottom meets the viewport bottom, which is
+   the same point .productDetails' GSAP pin releases (end: "bottom bottom").
+
+   mix-blend-mode sits on the sticky box itself. Sticky opens a stacking
+   context for its own contents, but the box still blends with its
+   backdrop (the gallery), since neither it nor the track sits inside a
+   fixed/z-indexed ancestor. */
+.floatingIconTrack {
+  --icon-size: calc(
+    6 *
+      (
+        (
+            100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+              var(--grid-gutter)
+          ) /
+          var(--grid-columns)
+      ) +
+      5 * var(--grid-gutter)
+  );
   position: absolute;
-  top: 50vh;
-  left: 0px;
-  width: 100%;
-  aspect-ratio: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(50vh - var(--icon-size) / 2);
   pointer-events: none;
-  /* No z-index here on purpose - see the comment above the block this
-     rule is in. Above both the panel's own text content and the gallery
-     images next to it via plain DOM order instead (it's the last child
-     of .page). */
-  /* Blend mode lives here, not on .floatingIcon itself — same reasoning
-     as components/floating-logo.module.css (blend on the outer layer,
-     never on an element that also has `filter`/an animated `transform`,
-     which is a known cross-browser blend trap: several engines render a
-     filtered/transformed element to an offscreen buffer and composite
-     that with plain alpha instead of the requested blend, silently
-     no-op'ing it). */
-  mix-blend-mode: difference;
 }
 
-@media (min-width: 769px) {
-  .floatingIconBox {
-    /* !important on all three - same reasoning as .productDetails' own
-       width above (this is also GSAP-pinned, via product-section.tsx). */
-    left: calc(
-      6 *
-        (
-          (
-              100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
-                var(--grid-gutter)
-            ) /
-            var(--grid-columns)
-        ) +
-        6 * var(--grid-gutter)
-    ) !important;
-    width: calc(
-      6 *
-        (
-          (
-              100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
-                var(--grid-gutter)
-            ) /
-            var(--grid-columns)
-        ) +
-        5 * var(--grid-gutter)
-    ) !important;
-    /* Replaces the base rule's top: 50vh + transform: translateY(-50%)
-       pairing with the same vertical center baked directly into `top` -
-       half of the width calc() above (aspect-ratio: 1 makes height ==
-       width, so half the width is half the height). No transform left
-       on this element at all now, which is what actually matters here:
-       see the base rule's comment for why a transform on a GSAP-pinned
-       element is the bug, not which unit does the centering. */
-    top: calc(
-      50vh - (
-        3 *
-          (
-            (
-                100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
-                  var(--grid-gutter)
-              ) /
-              var(--grid-columns)
-          ) +
-          2.5 * var(--grid-gutter)
-      )
-    ) !important;
-  }
+.floatingIconBox {
+  position: sticky;
+  /* Natural position and stick position are both "vertically centred in
+     the viewport when the section top is at the viewport top", so there is
+     no shift when sticking starts. */
+  top: calc(50vh - var(--icon-size) / 2);
+  margin-top: calc(50vh - var(--icon-size) / 2);
+  /* .page is inset by the grid margin on both sides (main's
+     padding-inline), so auto margins centre it on the viewport. */
+  margin-inline: auto;
+  width: var(--icon-size);
+  aspect-ratio: 1;
+  pointer-events: none;
+  /* Blend on this outer layer, never on the filtered/rotating img
+     (cross-browser blend trap, see components/floating-logo.module.css). */
+  mix-blend-mode: difference;
 }
 
 .floatingIcon {
@@ -557,7 +514,7 @@
      .productDetails' current auto content-height happens to be) render as
      a near-full-width square landing mid-way through the text content —
      the overlap bug seen in the mobile screenshot. */
-  .floatingIconBox {
+  .floatingIconTrack {
     display: none;
   }
 }
@@ -707,17 +664,35 @@
    PNG watermark used for .floatingIcon. ---- */
 .iconRow {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   margin-block: 1.2em;
 }
-
 .smallIcon {
-  width: 40px;
-  height: 40px;
+  display: block;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   /* Source SVGs are white line art (fill/stroke="white") - invert to
      black so they read against the panel's light background. */
   filter: invert(1);
+}
+/* Related products (links) sit at 25%; the product's own icon (first,
+   not a link) at 100%. Hovering any icon in the row takes it to 100% and
+   drops every other icon (the product's own included) to 25%. Opacity on
+   the direct children (img / link), never on the filtered img inside a
+   link. */
+.iconRow > * {
+  transition: opacity 0.2s ease;
+}
+.relatedIconLink {
+  display: block;
+  opacity: 0.25;
+}
+.iconRow:has(> :hover) > :not(:hover) {
+  opacity: 0.25;
+}
+.iconRow > :hover {
+  opacity: 1;
 }
 
 /* ================= Reviews ================= */
@@ -887,7 +862,9 @@
   .reviewsOverlay {
     display: block;
     position: absolute;
-    top: 0;
+    /* Offsets back to the viewport top when the panel is taller than the
+       screen and pinned above it (see product-section.tsx). */
+    top: var(--panel-overflow, 0px);
     right: 20px;
     left: 0;
     /* Full viewport height and "pinned" the same way .productDetails

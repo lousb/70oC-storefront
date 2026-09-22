@@ -136,6 +136,19 @@ export default async function Page(props: Props) {
   // intro-view icon (public/icons/02Icons/<slug>.png).
   const categoryIconSlug = cleanCategory?.toLowerCase();
 
+  // Related Products (Sanity, max 3) -> icon row under Add To Cart. The
+  // query already drops refs with no slug/category; stegaClean because
+  // both values end up in a URL/filename.
+  const relatedProducts = (productPage?.relatedProducts ?? []).flatMap(
+    (related) => {
+      const slug = related?.slug ? stegaClean(related.slug) : null;
+      const category = related?.category ? stegaClean(related.category) : null;
+      return slug && category
+        ? [{ slug, title: related.title, iconSlug: category.toLowerCase() }]
+        : [];
+    },
+  );
+
   // "Pressure 001"-style index next to the category label (see
   // product-details-panel.tsx's .categoryLabel) - this product
   // category's 1-based position in the homepage's own `sections` order
@@ -300,6 +313,7 @@ export default async function Page(props: Props) {
                 }
                 accordionItems={accordionItems}
                 categoryIconSlug={categoryIconSlug}
+                relatedProducts={relatedProducts}
                 product={product}
               />
             }
