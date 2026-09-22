@@ -18,9 +18,7 @@
      category-icon watermark (app/products/[slug]/page.module.css) once
      scrolled into view — a plain non-positioned element always paints
      below positioned/fixed content, regardless of z-index, so without
-     this the footer would only look right by accident. It's also what's
-     needed for the desktop-only pin/cover effect below, since only a
-     positioned element can be position: sticky. */
+     this the footer would only look right by accident. */
   position: relative;
   z-index: 3;
 
@@ -59,28 +57,6 @@
      is still on the light template colors until we get to those components. */
   background: #000000;
   color: #ffffff;
-}
-
-@media (min-width: 769px) {
-  /* Sticky "covers the previous section" treatment — only wanted on the
-     home page, where the footer is the last panel in the scroll-snap
-     stack (see anchor-carousel-section.module.css: each section covers
-     the one before it). The same Footer component is also rendered as a
-     normal, non-stacked block at the end of every other page (see
-     components/conditional-footer.tsx) — there, position: sticky made it
-     stick to the top of the viewport and paint over ordinary page content
-     (e.g. the product page's accordion) instead of just sitting at the
-     bottom, so it's gated behind this modifier class rather than applied
-     to every .footer. z-index: 3 (set above, unconditionally) is already
-     exactly what's needed for the stacking order on the home page: an
-     explicit, positive z-index always wins over the anchor sections'
-     plain position: sticky (z-index: auto), regardless of DOM order — so
-     the footer correctly ends up on top of all of them without needing
-     its own media-query-specific z-index. */
-  .footer.sticky {
-    position: sticky;
-    top: 0;
-  }
 }
 
 .footer :global(a):hover {

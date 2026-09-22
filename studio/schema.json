@@ -986,6 +986,10 @@
             "of": [
               {
                 "type": "string",
+                "value": "none"
+              },
+              {
+                "type": "string",
                 "value": "href"
               },
               {
@@ -2518,53 +2522,27 @@
           "type": "string"
         }
       },
-      "pressure": {
+      "sections": {
         "type": "objectAttribute",
         "value": {
-          "type": "inline",
-          "name": "homeSection"
+          "type": "array",
+          "of": {
+            "type": "object",
+            "attributes": {
+              "_key": {
+                "type": "objectAttribute",
+                "value": {
+                  "type": "string"
+                }
+              }
+            },
+            "rest": {
+              "type": "inline",
+              "name": "homeSection"
+            }
+          }
         },
-        "optional": true
-      },
-      "flow": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "homeSection"
-        },
-        "optional": true
-      },
-      "momentum": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "homeSection"
-        },
-        "optional": true
-      },
-      "repetition": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "homeSection"
-        },
-        "optional": true
-      },
-      "balance": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "homeSection"
-        },
-        "optional": true
-      },
-      "bloom": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "homeSection"
-        },
-        "optional": true
+        "optional": false
       },
       "pageSeo": {
         "type": "objectAttribute",

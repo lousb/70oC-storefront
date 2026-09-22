@@ -19,6 +19,7 @@ type SanityImageField =
   | {
       asset?: { _ref?: string | null } | null;
       alt?: string | null;
+      lqip?: string | null;
     }
   | null
   | undefined;
@@ -56,7 +57,13 @@ export function AnchorCarouselSection({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const sectionName = data?.sectionName?.trim() || categoryTitle;
+  // Display text always uses categoryTitle (Title Case, e.g. "Pressure")
+  // rather than the raw data.sectionName Sanity stores — that field is an
+  // upper-case locked code ("PRESSURE") used for matching in app/page.tsx,
+  // not meant to be shown as-is (see the Studio-side preview.prepare() in
+  // studio/src/schema-types/objects/home/home-section.ts, which does the
+  // same reformatting for Sanity's own UI).
+  const sectionName = categoryTitle;
   const introText = data?.sectionIntro?.trim() || DEFAULT_INTRO;
   const descriptionText = data?.sectionDescription?.trim() || DEFAULT_DESCRIPTION;
   const link = data?.link;
@@ -71,12 +78,13 @@ export function AnchorCarouselSection({
 
   return (
     <section className={s.section} aria-label={categoryTitle} data-snap-section>
-      {/* Desktop-only parallax drift as this section gets covered by the
-          next one — see components/home-parallax.tsx and the
-          @media (min-width: 769px) rule below. A plain passthrough
-          wrapper on mobile (no pinning there, nothing to parallax
-          against). */}
-      <div className={s.parallaxLayer}>
+      {/* Plain content wrapper — sections used to pin (position: sticky)
+         and drift as the next one covered it, but that's been removed;
+         this class now just holds layout (see .sectionViews in
+         anchor-carousel-section.module.css). data-snap-section above is
+         unrelated to that and stays either way — it's what drives
+         section-boundary scroll snapping (home-scroll-snap.tsx). */}
+      <div className={s.sectionViews}>
       {images.map((image, i) => {
         if (i === 1) {
           return (
@@ -111,6 +119,8 @@ export function AnchorCarouselSection({
                 priority={i === 0}
                 sizes="100vw"
                 className={s.slideImage}
+                placeholder={image?.lqip ? "blur" : undefined}
+                blurDataURL={image?.lqip ?? undefined}
               />
             ) : (
               <div className={s.slideTone} style={{ backgroundColor: tone }} />
@@ -172,7 +182,15 @@ export function AnchorCarouselSection({
                 aria-label={`Show view ${i + 1} of ${categoryTitle}`}
               >
                 {src ? (
-                  <NextImage src={src} alt="" fill sizes="60px" className={s.thumbnailImage} />
+                  <NextImage
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="60px"
+                    className={s.thumbnailImage}
+                    placeholder={image?.lqip ? "blur" : undefined}
+                    blurDataURL={image?.lqip ?? undefined}
+                  />
                 ) : (
                   <span className={s.thumbnailTone} style={{ backgroundColor: tone }} />
                 )}

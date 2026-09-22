@@ -2,6 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import Price from "../../../components/price";
+import { AddToCart } from "../../_cart/add-to-cart";
+import type { Product } from "../../../shopify/types";
 import { Accordion, type AccordionEntry } from "./accordion";
 import { ReviewsPanel } from "./reviews-panel";
 import { DEMO_RATING, DEMO_REVIEW_COUNT, formatRating } from "./reviews-data";
@@ -25,22 +27,24 @@ const CATEGORY_ORDER = [
 
 export function ProductDetailsPanel({
   category,
+  categoryIndex,
   title,
   priceAmount,
   priceCurrencyCode,
   descriptionNode,
   accordionItems,
   categoryIconSlug,
-  addToCart,
+  product,
 }: {
   category: string | null;
+  categoryIndex: string | null;
   title: string;
   priceAmount: string;
   priceCurrencyCode: string;
   descriptionNode: ReactNode;
   accordionItems: AccordionEntry[];
   categoryIconSlug?: string | null;
-  addToCart: ReactNode;
+  product: Product;
 }) {
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
@@ -75,11 +79,25 @@ export function ProductDetailsPanel({
 
       <div className={s.panelContent}>
         <div className={s.descriptionTop}>
+          {/* Grid, not a plain flex row - see .headerRow in
+              page.module.css: the category label (now "Pressure 001",
+              category + its 1-based position among the homepage's own
+              reorderable anchor sections - see categoryIndex in page.tsx)
+              and the price swap places with the title between desktop
+              and mobile (desktop: label+price on one line, title below;
+              mobile: title+label share one line, price hidden), which a
+              grid's `grid-template-areas` handles per breakpoint without
+              needing two copies of the title itself. */}
           <div className={s.headerRow}>
-            <div>
-              {category && <p className={s.categoryLabel}>{category}</p>}
-              <h1>{title}</h1>
-            </div>
+            {category && (
+              <p className={s.categoryLabel}>
+                {category}
+                {categoryIndex && (
+                  <span className={s.categoryIndex}>{categoryIndex}</span>
+                )}
+              </p>
+            )}
+            <h1>{title}</h1>
             <p className={s.priceTop}>
               <Price amount={priceAmount} currencyCode={priceCurrencyCode} />
             </p>
@@ -97,7 +115,25 @@ export function ProductDetailsPanel({
           {descriptionNode}
         </div>
 
-        <div className={s.addToCartRow}>{addToCart}</div>
+        <div className={s.addToCartRow}><AddToCart product={product} /></div>
+
+        {/* Mobile-only Add to Cart + Price bar. Sits right where
+            .addToCartRow is (that row is desktop-only, hidden on mobile -
+            see page.module.css). Plain normal-flow content, no
+            sticky/pin/dock behavior - a pinned version was tried and
+            pulled back out at the user's request, so this is just the
+            page's own Add to Cart, styled for mobile. A second,
+            independent <AddToCart> instance - takes `product` (a plain
+            serializable object) rather than a pre-built element/function
+            prop, since Page is a server component and can't hand a
+            function across that boundary, and reusing one element in two
+            places trips React's "each child needs a unique key" check. */}
+        <div className={s.mobileCartBar}>
+          <AddToCart product={product} />
+          <p className={s.mobileCartPrice}>
+            <Price amount={priceAmount} currencyCode={priceCurrencyCode} />
+          </p>
+        </div>
 
         <div className={s.iconRow} aria-hidden="true">
           {iconSlugs.map((slug) => (

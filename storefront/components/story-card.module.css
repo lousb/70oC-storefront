@@ -38,3 +38,17 @@
   font-size: 0.875rem;
   opacity: 0.6;
 }
+
+/* All four sizes above are set in rem, which tracks the root <html>
+   element rather than --font-size (see that token's own mobile override
+   in styles/globals.css for why it's kept that way) - so they need this
+   explicit override to actually reach the site's 12px mobile type size
+   instead of silently staying at their desktop rem values. */
+@media (max-width: 768px) {
+  .date,
+  .title,
+  .topic,
+  .byline {
+    font-size: var(--font-size);
+  }
+}

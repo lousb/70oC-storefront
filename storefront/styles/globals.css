@@ -68,6 +68,26 @@
   }
 }
 
+/* Mobile type scale — one number drives virtually all text on the site
+   (see --font-size's own comment above: body's font-size reads this
+   token directly, and most component stylesheets either set
+   `font-size: var(--font-size)` explicitly or inherit/use em relative to
+   it), so overriding it here is enough to bring ALL of that text down to
+   12px on mobile in one place rather than hunting down every selector.
+   The exceptions are the handful of spots that size type in rem instead
+   (rem tracks the root <html> element, which this token deliberately
+   doesn't touch - html's own font-size stays fixed so rem-based LAYOUT
+   values elsewhere, like .main-grid's column tracks below and
+   floating-logo.module.css's offsets, aren't affected by a change meant
+   for text only) - those get their own explicit mobile override instead,
+   right at each of their definitions: see app/_cart/cart.module.css and
+   components/story-card.module.css, and .blog-post-page below. */
+@media (max-width: 768px) {
+  :root {
+    --font-size: 12px;
+  }
+}
+
 /* Universal grid utility — opt in per component as we rebuild them.
    Sets up the column tracks/margins; a component defines its own
    grid-column placements on top of this. */
@@ -223,6 +243,12 @@ mux-player {
   width:75%;
   font-size: 1.2rem;
   padding-bottom:1ch;
+}
+
+@media (max-width: 768px) {
+  .blog-post-page p, .blog-post-page h1 {
+    font-size: var(--font-size);
+  }
 }
 .total-checkout{
   padding-top:2rem;

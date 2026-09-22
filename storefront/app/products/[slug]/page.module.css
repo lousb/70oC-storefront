@@ -7,6 +7,11 @@
      (which used to run it straight into the footer). */
   display: flex;
   align-items: flex-start;
+  /* Positioned ancestor for .floatingIconBox (position: absolute against
+     THIS, not .productDetails - see product-section.tsx/.floatingIconBox
+     for why it needs to be a sibling of .productDetails rather than
+     nested inside it). */
+  position: relative;
 }
 
 /* Right column — the image stack (see Gallery). 50% viewport width, flush
@@ -45,13 +50,21 @@
      the left on desktop despite now being second in the DOM. */
   order: 1;
   flex-shrink: 0;
+  /* !important: GSAP's pin locks the pinned element's measured width into
+     an inline style so it doesn't collapse once taken out of flow. That's
+     only ever needed for a %/auto width - this one's already a fixed
+     calc(), so the snapshot can only drift from it (stale fonts/images at
+     pin-setup time, sub-pixel rounding, etc.), which is what was causing
+     a visible width jump right as this docks into its pinned state.
+     !important keeps pinned and in-flow always identical, so there's
+     nothing left to jump. */
   width: calc(
     (
         100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
           var(--grid-gutter)
       ) /
       var(--grid-columns) * 4 + 3 * var(--grid-gutter)
-  );
+  ) !important;
   /* Content-height, not viewport-height - top-aligned and free to
      grow when the accordion expands (a fixed height here used to
      center+overflow content both above the header and below the
@@ -65,28 +78,58 @@
   flex-direction: column;
 }
 
+/* Grid (not flex) so the category label + price can swap places with the
+   title between breakpoints via grid-template-areas alone, with a single
+   shared <h1> (see product-details-panel.tsx for why two <h1>s per page
+   would be wrong) rather than two differently-positioned copies of it.
+   Desktop: label (+ its "001" index) and price share the top line, title
+   on its own line below. Mobile: title and label share one line instead
+   (see the mobile override below) - price is hidden there the same way
+   it always has been (.priceTop's own mobile rule further down; the
+   mobile Add to Cart bar shows the price instead - see .mobileCartBar). */
 .headerRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--main-gap);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "category price"
+    "title    title";
+  column-gap: var(--main-gap);
+  row-gap: -0.2em;
+  align-items: baseline;
+  padding-bottom: 0.5em;
+}
+
+@media (max-width: 768px) {
+  .headerRow {
+    grid-template-areas: "title category";
+  }
 }
 
 .categoryLabel {
+  grid-area: category;
   opacity: 1;
   color: #000;
-  margin: 0 0 0.2em;
+  margin: 0;
+}
+
+/* The "001"-style index after the category name (e.g. "Pressure 001") -
+   its own span so it can carry a bit of breathing room from the name
+   without hard-coding a space into the rendered text itself. */
+.categoryIndex {
+  margin-left: 0.5em;
 }
 
 .headerRow h1 {
+  grid-area: title;
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
 }
 
 .priceTop {
+  grid-area: price;
+  justify-self: end;
   white-space: nowrap;
-  flex-shrink: 0;
   color: #000;
 }
 
@@ -195,6 +238,16 @@
   gap: 0;
 }
 
+/* Each gallery image's wrapper - desktop stack and mobile carousel both
+   reuse this (see gallery.tsx). Desktop's own ratio lives here as the
+   base value; mobile gets its own explicit copy below so the two can
+   diverge independently instead of silently sharing one rule. */
+.galleryItem {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
 .galleryCarousel {
   display: none;
 }
@@ -228,16 +281,16 @@
   right: 0;
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 10px;
   pointer-events: none;
 }
 
 .dot {
   display: block;
-  width: 6px;
-  height: 6px;
-  min-width: 6px;
-  min-height: 6px;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   border: none;
@@ -257,6 +310,57 @@
   transform: scale(1.2);
 }
 
+/* Desktop-only right-aligned vertical dots, one per stacked gallery image,
+   tracking scroll position via the IntersectionObserver in gallery.tsx
+   (mobile has its own dots on the carousel above - see .dots). Fixed
+   against the viewport (not .galleryStack) so it stays put while the
+   stack scrolls past underneath it. mix-blend-mode lives on this outer
+   layer, not on .desktopDot itself, matching .floatingIconBox's own
+   reasoning above: an element that both blends and has an *animated*
+   transform is a cross-browser blend trap - translateY(-50%) here is
+   static (just centering), so it's safe on the same element, same as
+   .floatingIconBox's own top: 50vh + transform pairing. */
+.desktopDots {
+  /* Same trick as .floatingIconBox above: absolute (not fixed) by
+     default, keyed off .page's own top edge via a viewport-relative unit
+     (50vh, not 50%) rather than .page's own height - since .page's top
+     coincides with the true viewport top at the exact scroll position
+     this pins from (see gallery.tsx's ScrollTrigger, start: "top top"),
+     that lands at true viewport center for the pinned phase too, so
+     nothing visibly shifts at the moment GSAP swaps this to fixed. */
+  position: absolute;
+  top: 50vh;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 30;
+  mix-blend-mode: difference;
+}
+
+.desktopDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.desktopDotActive {
+  background: #fff;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .galleryColumn {
@@ -273,71 +377,105 @@
     display: block;
   }
 
+  /* Explicit on its own (rather than just inheriting the desktop stack's
+     value above) so mobile's ratio can diverge from desktop's without
+     touching it - this is the product page's own gallery only, not the
+     /products listing grid (see product-card.module.css's .cover). */
+  .galleryItem {
+    aspect-ratio: 4 / 5;
+  }
+
+  .desktopDots {
+    display: none;
+  }
+
   .page {
     display: block;
   }
 
+  /* !important on width/max-width here too: the base (desktop) rule's
+     own width is `calc(...) !important` (needed there so GSAP's pinned-
+     width snapshot can never drift from the live value - see that rule's
+     own comment). !important beats a later same-specificity rule that
+     lacks it regardless of media query, so without matching !important
+     here this mobile override was silently never applying - .productDetails
+     (and everything sized relative to it: .descriptionTop, the mobile
+     cart bar, etc.) was actually still rendering at its ~4-desktop-grid-
+     column width on phones instead of the full screen width. */
   .productDetails {
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     margin-top: 0;
     height: auto;
-    padding: 20px;
     padding-block-start: var(--main-padding);
   }
 
   .descriptionTop {
     padding-top: 0;
-    width: 90%;
+    width: 100%;
+  }
+  /* Matches the site-wide mobile type scale (see globals.css's
+     --font-size comment) instead of the stray hardcoded 14px this
+     had before, which was actually bigger than the 12px desktop
+     value above it. */
+  .editorialDescription {
+    font-size: var(--font-size);
   }
 }
 
-/* Floating category-icon watermark. Lives INSIDE .productDetails
-   (position:absolute against it, see FloatingCategoryIcon/product-section)
-   so it automatically pins/releases together with the text panel — no
-   separate GSAP position code needed, it just follows its positioned
-   parent through GSAP's fixed/static toggling. Desktop: offset + sized to
-   land on grid columns 7-13 (6-of-18), computed relative to
-   .productDetails' own left edge, which already sits on column 1's start.
-   Mobile: simpler near-full-width placement (.productDetails is already
+/* Floating category-icon watermark. A SIBLING of .productDetails, not a
+   child of it (see FloatingCategoryIcon/product-section) - pinned by its
+   own GSAP ScrollTrigger, matching .productDetails' pin/release timing
+   exactly, rather than by nesting inside it (see the comment on the rule
+   below for why). Desktop: offset + sized to land on grid columns 7-13
+   (6-of-18), computed relative to .page's own left edge (which sits on
+   column 1's start, same as .productDetails' own left edge). Mobile:
+   simpler near-full-width placement (.productDetails is already
    ~edge-to-edge there, so no viewport breakout math is needed). Icon
    treatment matches components/anchor-carousel-section.module.css's
    introIconBox/.introIcon. */
 .floatingIconBox {
-  /* Fixed (not absolute-inside-.productDetails, like before) - and a
+  /* Absolute against .page (not .productDetails, like before) - and a
      sibling of .productDetails in the DOM, not a child of it (see
-     product-section.tsx). position: fixed always opens a new stacking
-     context, so while .productDetails itself is pinned (also
-     position:fixed for that duration), anything nested inside it would
-     have its mix-blend-mode trapped against only that panel's own
-     contents - never able to actually blend against the gallery photo
-     next to it, which is what made the icon look like a faint,
-     washed-out outline instead of genuinely differencing against
-     whatever's behind it (components/floating-logo.module.css uses this
-     same fixed-sibling-layer recipe, successfully, for the same reason).
-     Left/width/top are already viewport-relative (vw/vh) so switching
-     from absolute to fixed doesn't change where any of this actually
-     lands on screen. */
-  position: fixed;
-  /* Centered against the viewport height so it stays vertically centered
-     on screen for the whole time the panel is pinned, instead of
-     drifting with content length. */
+     product-section.tsx). GSAP pins THIS element with its own
+     ScrollTrigger (same trigger/start/end as .productDetails' own pin,
+     so they move in perfect lockstep - pinning, then docking back to
+     static flow, together). Nesting it inside .productDetails instead
+     would break mix-blend-mode: position: fixed (what .productDetails
+     becomes for the pin's duration) always opens a new stacking context,
+     which would trap this box's blend mode against only .productDetails'
+     own contents - never able to actually blend against the gallery
+     photo next to it (components/floating-logo.module.css uses this same
+     fixed-sibling-layer recipe, successfully, for the same reason - the
+     difference is that one is always pinned, this one pins/docks with
+     .productDetails instead).
+     top/left are already viewport-relative (vw/vh, plus the grid calc
+     below) - since .page's own top coincides with the true viewport top
+     at the exact scroll position where the pin starts (start: "top top"
+     is keyed off this same section), 50vh here lands at true viewport
+     center for the pinned phase, exactly as before.
+     No transform here (unlike .desktopDots' identical-looking top: 50vh
+     pairing below, which is safe because that one is small enough for
+     the bug to go unnoticed) - GSAP's pin measures this box's rendered
+     (post-transform) position to work out where to freeze it, then
+     switches it to position: fixed with an inline top - but the CSS
+     transform: translateY(-50%) itself is never removed, so it went on
+     applying a SECOND time on top of that fixed top for as long as this
+     stayed pinned, shifting the icon an extra half-height off-center
+     for the whole pinned phase and snapping visibly back into place the
+     instant it docked. The desktop override below bakes the same
+     half-height offset directly into `top` via calc() instead, so there
+     is no transform left for the pin to double up on. */
+  position: absolute;
   top: 50vh;
-  left: 0;
+  left: 0px;
   width: 100%;
   aspect-ratio: 1;
-  transform: translateY(-50%);
   pointer-events: none;
-  /* Above both the panel's own text content and the gallery images next
-     to it. */
-  z-index: 5;
-  /* Hidden outside the exact scroll window .productDetails is pinned for
-     (product-section.tsx toggles .floatingIconPinned via the same
-     ScrollTrigger) - this is a fixed, viewport-centered decorative
-     layer, so without this it would keep floating over whatever content
-     comes next once the section scrolls past. */
-  opacity: 0;
-  transition: opacity 0.4s ease;
+  /* No z-index here on purpose - see the comment above the block this
+     rule is in. Above both the panel's own text content and the gallery
+     images next to it via plain DOM order instead (it's the last child
+     of .page). */
   /* Blend mode lives here, not on .floatingIcon itself — same reasoning
      as components/floating-logo.module.css (blend on the outer layer,
      never on an element that also has `filter`/an animated `transform`,
@@ -348,14 +486,12 @@
   mix-blend-mode: difference;
 }
 
-.floatingIconPinned {
-  opacity: 1;
-}
-
 @media (min-width: 769px) {
   .floatingIconBox {
+    /* !important on all three - same reasoning as .productDetails' own
+       width above (this is also GSAP-pinned, via product-section.tsx). */
     left: calc(
-      var(--grid-margin) + 6 *
+      6 *
         (
           (
               100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
@@ -364,7 +500,7 @@
             var(--grid-columns)
         ) +
         6 * var(--grid-gutter)
-    );
+    ) !important;
     width: calc(
       6 *
         (
@@ -375,7 +511,27 @@
             var(--grid-columns)
         ) +
         5 * var(--grid-gutter)
-    );
+    ) !important;
+    /* Replaces the base rule's top: 50vh + transform: translateY(-50%)
+       pairing with the same vertical center baked directly into `top` -
+       half of the width calc() above (aspect-ratio: 1 makes height ==
+       width, so half the width is half the height). No transform left
+       on this element at all now, which is what actually matters here:
+       see the base rule's comment for why a transform on a GSAP-pinned
+       element is the bug, not which unit does the centering. */
+    top: calc(
+      50vh - (
+        3 *
+          (
+            (
+                100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+                  var(--grid-gutter)
+              ) /
+              var(--grid-columns)
+          ) +
+          2.5 * var(--grid-gutter)
+      )
+    ) !important;
   }
 }
 
@@ -477,9 +633,24 @@
   padding-top: 100px;
 }
 
+/* Desktop-only bump for the whole panel (title, category, price, rating
+   link, Add to Cart, accordion) from the site's base 16px up to 14px.
+   font-size, not a variable, since this is a one-component exception to
+   --font-size (globals.css) rather than a change to that shared token -
+   mobile keeps inheriting --font-size (12px) untouched, this only fires
+   at 769px+. Everything in .panelContent inherits from it (accordionTrigger
+   uses font: inherit, .headerRow h1 uses font-size: inherit, etc.) except
+   .editorialDescription, which sets its own absolute 12px below and so
+   stays at 12px on desktop too - the one thing this deliberately excludes. */
+@media (min-width: 769px) {
+  .panelContent {
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 768px) {
   .panelContent {
-    padding-top: 100px;
+    padding-top: 20px;
   }
 }
 
@@ -497,10 +668,14 @@
   font: inherit;
   color: inherit;
   text-align: left;
-  text-decoration: underline;
+  text-decoration: none;
   text-underline-offset: 3px;
   cursor: pointer;
   opacity: 0.8;
+}
+
+.ratingLink:hover {
+  text-decoration: underline;
 }
 
 
@@ -512,10 +687,17 @@
    it there. ---- */
 .addToCartRow {
   width: 100%;
+  margin-top:1.2em;
 }
 
 @media (max-width: 768px) {
   .priceTop {
+    display: none;
+  }
+
+  /* .mobileCartBar (right below this in the DOM - see
+     product-details-panel.tsx) takes over this spot on mobile. */
+  .addToCartRow {
     display: none;
   }
 }
@@ -748,5 +930,69 @@
     padding: 24px 20px 40px;
     background: #000;
     color: #fff;
+  }
+}
+
+
+/* ---- Mobile-only Add to Cart + Price bar ----
+   Sits right where .addToCartRow is (that row is hidden on mobile - see
+   above), a second, independent <AddToCart> instance - React is fine
+   mounting the same element/prop twice. Plain normal-flow content
+   (own width, transparent bar background - only the button/price pills
+   inside it have their own #F2F2F2 fill, untouched here), genuinely part
+   of the page, right where the page's normal Add to Cart is. A sticky/
+   pinned version (pins as you scroll past it, docks black full-bleed at
+   the bottom of the reviews section) was built and then pulled back out
+   at the user's request, so this is just that - a plain bar, no
+   position/scroll behavior of its own. */
+.mobileCartBar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobileCartBar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 20px;
+    width: 100%;
+    padding: 0;
+    background: transparent;
+  }
+
+  /* The <form> from app/_cart/add-to-cart.tsx has no className of its
+     own — targeted by element type since it's a direct child here. Grows
+     to fill whatever width .mobileCartPrice (sized to its own text)
+     doesn't need, so Add to Cart always takes up as much width as
+     possible. */
+  .mobileCartBar > form {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Left-aligned (not centered) - the button still takes up as much
+     width as its flex:1 1 auto parent form gives it (see `.mobileCartBar
+     > form` above), it just doesn't center its own label text within
+     that width. padding-inline gives the label the same kind of inset
+     from the bar's edge that .mobileCartPrice gets from its own
+     padding, instead of sitting flush against it. */
+  .mobileCartBar .addToCart {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.6em 16px;
+    margin-block: 0;
+    background: #F2F2F2;
+  }
+
+  /* No fixed width — sized to its own text, so it naturally grows/shrinks
+     with the number of digits in the price, and .addToCart above
+     grows/shrinks to match via flex. */
+  .mobileCartPrice {
+    flex-shrink: 0;
+    margin: 0;
+        padding: 0.5em 16px;
+    white-space: nowrap;
+    background: #F2F2F2;
+    height: 100%;
   }
 }

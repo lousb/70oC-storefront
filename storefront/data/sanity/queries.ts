@@ -17,6 +17,7 @@ const pageBuilderFields = /* groq */ `
       crop,
       hotspot,
       alt,
+      "lqip": asset->metadata.lqip,
     }),
     "color": select(_type == "color" => hex)
   },
@@ -47,6 +48,7 @@ const pageBuilderFields = /* groq */ `
         "crop": image.crop,
         "hotspot": image.hotspot,
         "alt": image.alt,
+        "lqip": image.asset->metadata.lqip,
       }),
       "video": select(mediaType == "video" => {
         "playbackId": video.asset->playbackId,
@@ -85,7 +87,10 @@ const linkFields = /* groq */ `
 export type LinkFieldsType = {
   _type: "link";
   _key: string;
-  linkType: "collection" | "home" | "href" | "page" | "plp" | "product";
+  linkType: "collection" | "home" | "href" | "none" | "page" | "plp" | "product";
+  // "none" (the new "No Link" choice) has no matching case in linkFields'
+  // url select() below, so it resolves to null same as this type already
+  // allowed for - no consumer needs to change to treat it as "no link".
   url: string | "/" | "/colections/all" | null;
   label: string | "All Products" | "Home" | "Link" | null;
   openInNewTab: boolean;
@@ -93,8 +98,8 @@ export type LinkFieldsType = {
 
 const homeSectionFields = /* groq */ `
   sectionName,
-  "image1": image1{asset, crop, hotspot, alt},
-  "image3": image3{asset, crop, hotspot, alt},
+  "image1": image1{asset, crop, hotspot, alt, "lqip": asset->metadata.lqip},
+  "image3": image3{asset, crop, hotspot, alt, "lqip": asset->metadata.lqip},
   sectionIntro,
   sectionDescription,
   "link": link{${linkFields}}
@@ -141,14 +146,20 @@ export const HOME_QUERY = defineQuery(`
     "status": select(_id in path("drafts.**") => "draft", "published"),
     "name": "Home",
     "slug": "/",
-    "pressure": pressure{${homeSectionFields}},
-    "flow": flow{${homeSectionFields}},
-    "momentum": momentum{${homeSectionFields}},
-    "repetition": repetition{${homeSectionFields}},
-    "balance": balance{${homeSectionFields}},
-    "bloom": bloom{${homeSectionFields}},
+    "sections": sections[]{${homeSectionFields}},
     pageSeo{${pageSeoFields}}
   }
+`);
+
+// Just the 6 anchor sections' `sectionName` values, in the order editors
+// have them arranged in Studio's reorderable `sections` array (see
+// studio/src/schema-types/singletons/home.tsx) — a lighter fetch than
+// HOME_QUERY above for anything that only needs that order (e.g. the
+// product page's "Pressure 001"-style category index, which numbers a
+// product's category by its position in this list rather than a fixed
+// constant, so re-ordering the homepage in Studio re-numbers it too).
+export const HOME_SECTIONS_ORDER_QUERY = defineQuery(`
+  *[_type == 'home'][0].sections[].sectionName
 `);
 
 export const SHOP_QUERY = defineQuery(`
@@ -258,6 +269,7 @@ export const PRODUCT_QUERY = defineQuery(`
         "crop": media.image.crop,
         "hotspot": media.image.hotspot,
         "alt": media.image.alt,
+        "lqip": media.image.asset->metadata.lqip,
       }),
       "video": select(media.mediaType == "video" => {
         "playbackId": media.video.asset->playbackId,
@@ -304,6 +316,7 @@ const storyPageBuilderFields = /* groq */ `
       "crop": media.image.crop,
       "hotspot": media.image.hotspot,
       "alt": media.image.alt,
+      "lqip": media.image.asset->metadata.lqip,
     }),
     "video": select(media.mediaType == "video" => {
       "playbackId": media.video.asset->playbackId,
@@ -321,6 +334,7 @@ const storyPageBuilderFields = /* groq */ `
       "crop": secondMedia.image.crop,
       "hotspot": secondMedia.image.hotspot,
       "alt": secondMedia.image.alt,
+      "lqip": secondMedia.image.asset->metadata.lqip,
     }),
     "video": select(secondMedia.mediaType == "video" => {
       "playbackId": secondMedia.video.asset->playbackId,
@@ -363,6 +377,7 @@ export const ALL_POSTS_QUERY = defineQuery(`
         "crop": cover.image.crop,
         "hotspot": cover.image.hotspot,
         "alt": cover.image.alt,
+        "lqip": cover.image.asset->metadata.lqip,
       }),
       "video": select(cover.mediaType == "video" => {
         "playbackId": cover.video.asset->playbackId,
@@ -391,6 +406,7 @@ export const POST_QUERY = defineQuery(`
         "crop": cover.image.crop,
         "hotspot": cover.image.hotspot,
         "alt": cover.image.alt,
+        "lqip": cover.image.asset->metadata.lqip,
       }),
       "video": select(cover.mediaType == "video" => {
         "playbackId": cover.video.asset->playbackId,

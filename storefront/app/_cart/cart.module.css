@@ -373,6 +373,26 @@
   }
 
   .itemImage { width: 72px; height: 72px; }
+
+  /* Everything above sizes its text in rem, which tracks the root <html>
+     element rather than --font-size (see that token's own mobile
+     override in styles/globals.css for why) - so it needs its own
+     explicit override here to actually shrink to the site's 12px mobile
+     type size instead of silently staying at its desktop rem value. */
+  .cartTitle,
+  .emptyState,
+  .itemTitle,
+  .itemVariant,
+  .quantity,
+  .qtyButton,
+  .removeButton,
+  .totalRow,
+  .shippingNote,
+  .itemPriceMobile,
+  .mobileCheckoutButton,
+  .mobileCheckoutTotal {
+    font-size: var(--font-size);
+  }
 }
 
 /* Desktop — side drawer */

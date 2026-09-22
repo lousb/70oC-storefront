@@ -101,6 +101,27 @@
   padding-bottom: 60px;
 }
 
+/* Reveal: opacity 0 -> 1, y 20 -> 0, staggered row by row via the
+   animation-delay set inline per item in product-grid.tsx. Plays on
+   mount, which covers both the initial page load and a view switch
+   (the grid remounts with a fresh key={view} - see product-grid.tsx). */
+.item {
+  min-width: 0;
+  opacity: 0;
+  animation: productReveal 0.6s ease forwards;
+}
+
+@keyframes productReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .empty {
   padding-block: 60px;
   opacity: 0.4;
@@ -127,6 +148,6 @@
   }
 
   .grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }

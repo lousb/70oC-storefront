@@ -2,9 +2,12 @@ import { defineField, defineType } from "sanity";
 
 /**
  * Shared shape for each of the 6 fixed Home sections (Pressure, Flow, Momentum,
- * Repetition, Balance, Bloom). The section name is locked — it's set via
- * initialValue on each field in singletons/home.tsx and is read-only here so
- * editors can't rename or mismatch a section.
+ * Repetition, Balance, Bloom). The section name is locked and read-only here
+ * so editors can't rename or mismatch a section — its value is one of the
+ * upper-case HOME_CATEGORIES codes (e.g. "PRESSURE") set by the migration/
+ * initialValue, kept upper-case to match what the rest of the app matches
+ * against (see app/page.tsx). preview.prepare() below just reformats it to
+ * Title Case for a nicer read in Studio's sections list and document title.
  */
 export const homeSection = defineType({
   name: "homeSection",
@@ -54,9 +57,18 @@ export const homeSection = defineType({
   ],
   preview: {
     select: {
-      title: "sectionName",
+      sectionName: "sectionName",
       subtitle: "sectionIntro",
       media: "image1",
+    },
+    prepare({ sectionName, subtitle, media }) {
+      // Studio-display only — reformats the stored upper-case code (e.g.
+      // "PRESSURE") to Title Case ("Pressure"). The stored value itself
+      // stays upper-case; nothing downstream that matches against it changes.
+      const title = sectionName
+        ? sectionName.charAt(0) + sectionName.slice(1).toLowerCase()
+        : "Untitled";
+      return { title, subtitle, media };
     },
   },
 });

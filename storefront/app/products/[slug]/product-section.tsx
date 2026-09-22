@@ -23,11 +23,12 @@ gsap.registerPlugin(ScrollTrigger);
 // context (regardless of z-index), so while .productDetails is pinned,
 // anything nested inside it has its mix-blend-mode trapped against only
 // that panel's own contents and can never actually blend against the
-// gallery photo next to it. Since the icon's own CSS already positions it
-// with viewport units (vw/vh), it doesn't need to be inside
-// .productDetails for placement — it only needs the SAME pin timing,
-// which the ScrollTrigger below now also drives via onToggle, toggling a
-// class on the icon through the forwarded ref instead of via GSAP's pin.
+// gallery photo next to it. It still needs to pin and dock exactly like
+// .productDetails does, though - not just sit centered whenever it feels
+// like it - so it gets its own GSAP pin below, using the identical
+// trigger/start/end as .productDetails' pin, so both switch to fixed and
+// release back to static in perfect lockstep, while still being separate
+// elements (so the blend mode can actually reach the gallery photo).
 export function ProductSection({
   gallery,
   details,
@@ -47,17 +48,33 @@ export function ProductSection({
     mm.add("(min-width: 769px)", () => {
       if (!sectionRef.current || !detailsRef.current) return;
 
-      const st = ScrollTrigger.create({
+      const pinConfig = {
         trigger: sectionRef.current,
         start: "top top",
         end: "bottom bottom",
+      } as const;
+
+      const stDetails = ScrollTrigger.create({
+        ...pinConfig,
         pin: detailsRef.current,
-        onToggle: (self) => {
-          iconBoxRef.current?.classList.toggle(s.floatingIconPinned, self.isActive);
-        },
       });
 
-      return () => st.kill();
+      // Same trigger/start/end as stDetails above - a second, independent
+      // pin (not a shared one) because this is a different element, but
+      // matching numbers mean it activates and releases at exactly the
+      // same scroll positions, so the icon pins and docks right alongside
+      // the panel instead of drifting out of sync with it.
+      const stIcon = iconBoxRef.current
+        ? ScrollTrigger.create({
+            ...pinConfig,
+            pin: iconBoxRef.current,
+          })
+        : null;
+
+      return () => {
+        stDetails.kill();
+        stIcon?.kill();
+      };
     });
 
     return () => mm.revert();

@@ -11,6 +11,7 @@ type MediaItemProps = {
     crop?: any;
     hotspot?: any;
     alt?: string;
+    lqip?: string | null;
   };
   video?: {
     playbackId: string;
@@ -67,6 +68,9 @@ export function MediaItem({
   if (mediaType === "image" && image) {
     const src = urlForImage(image)?.url();
     if (!src) return null;
+    // Sanity generates a tiny blurred placeholder (LQIP) for every
+    // uploaded image automatically - feed it straight to next/image's
+    // built-in blur-up so images don't just pop in empty while loading.
     return (
       <NextImage
         src={src}
@@ -75,6 +79,8 @@ export function MediaItem({
         style={{ objectFit: "cover" }}
         sizes={sizes}
         priority={priority}
+        placeholder={image.lqip ? "blur" : undefined}
+        blurDataURL={image.lqip ?? undefined}
       />
     );
   }

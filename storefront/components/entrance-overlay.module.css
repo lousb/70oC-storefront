@@ -11,13 +11,6 @@
   transition: opacity 0.78s ease;
 }
 
-/* First-ever visit only — the overlay waits for a click instead of
-   auto-hiding, so it needs to actually be interactive/clickable. */
-.overlay[data-clickable="true"] {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
 .overlay[data-hiding="true"] {
   opacity: 0;
   pointer-events: none;

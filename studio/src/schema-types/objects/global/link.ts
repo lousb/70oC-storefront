@@ -4,6 +4,13 @@ import { defineField, defineType } from "sanity";
 /**
  * Link schema object. This link object lets the user first select the type of link and then
  * then enter the URL, page reference, or post reference - depending on the type selected.
+ * "No Link" is a first-class choice here (rather than just leaving the
+ * whole object untouched) so an editor has an explicit way to say "this
+ * shouldn't link anywhere" - useful anywhere this type is used optionally,
+ * like objects/home/home-section.ts's Link field. It resolves to a null
+ * url on the frontend (see linkFields in the storefront's
+ * data/sanity/queries.ts), which every current consumer already treats
+ * as "don't render a link".
  * Learn more: https://www.sanity.io/docs/object-type
  */
 
@@ -21,6 +28,7 @@ export const link = defineType({
       validation: (rule) => rule.required(),
       options: {
         list: [
+          { title: "No Link", value: "none" },
           { title: "URL", value: "href" },
           { title: "Home", value: "home" },
           { title: "PLP - All Products", value: "plp" },
@@ -129,6 +137,10 @@ export const link = defineType({
       collectionSlug: "collection.store.slug.current",
     },
     prepare(selection) {
+      if (selection.linkType === "none" || !selection.linkType) {
+        return { title: "No Link" };
+      }
+
       const title =
         selection.label ??
         (selection.linkType === "home"
