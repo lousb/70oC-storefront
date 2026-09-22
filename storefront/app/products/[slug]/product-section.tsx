@@ -18,10 +18,16 @@ gsap.registerPlugin(ScrollTrigger);
 // footer). Desktop only — mobile stacks the panel below the gallery in
 // normal flow instead (see the mobile media query in page.module.css).
 //
-// The floating category icon renders as a plain child of .productDetails
-// (position:absolute against it), so it rides along with this same
-// pin/release cycle automatically — no second ScrollTrigger needed for its
-// position, just its own independent scroll-rotation tween.
+// The floating category icon is a SIBLING of .productDetails, not a child
+// of it (unlike before) — position: fixed always opens its own stacking
+// context (regardless of z-index), so while .productDetails is pinned,
+// anything nested inside it has its mix-blend-mode trapped against only
+// that panel's own contents and can never actually blend against the
+// gallery photo next to it. Since the icon's own CSS already positions it
+// with viewport units (vw/vh), it doesn't need to be inside
+// .productDetails for placement — it only needs the SAME pin timing,
+// which the ScrollTrigger below now also drives via onToggle, toggling a
+// class on the icon through the forwarded ref instead of via GSAP's pin.
 export function ProductSection({
   gallery,
   details,
@@ -33,6 +39,7 @@ export function ProductSection({
 }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
+  const iconBoxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mm = gsap.matchMedia();
@@ -45,6 +52,9 @@ export function ProductSection({
         start: "top top",
         end: "bottom bottom",
         pin: detailsRef.current,
+        onToggle: (self) => {
+          iconBoxRef.current?.classList.toggle(s.floatingIconPinned, self.isActive);
+        },
       });
 
       return () => st.kill();
@@ -83,8 +93,10 @@ export function ProductSection({
       <div className={s.galleryColumn}>{gallery}</div>
       <div ref={detailsRef} className={s.productDetails}>
         {details}
-        {categoryIconSlug && <FloatingCategoryIcon slug={categoryIconSlug} />}
       </div>
+      {categoryIconSlug && (
+        <FloatingCategoryIcon ref={iconBoxRef} slug={categoryIconSlug} />
+      )}
     </div>
   );
 }

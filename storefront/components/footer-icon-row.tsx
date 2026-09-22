@@ -45,14 +45,18 @@ export default function FooterIconRow() {
 
   return (
     <div ref={ref} className={`${s.iconRow} ${inView ? s.iconRowInView : ""}`}>
-      {CATEGORY_ICONS.map((category) => (
+      {CATEGORY_ICONS.map((category, i) => (
         // Assumption: each icon links to its Home page section — adjust
         // once the real destination (e.g. a filtered shop view) is known.
+        // Staggered opacity reveal - each icon's own transition-delay
+        // (see .iconLink in footer.module.css) fades it in a beat after
+        // the last, instead of the whole row fading in as one block.
         <a
           key={category.slug}
           href={`/#${category.slug}`}
           aria-label={category.title}
           className={s.iconLink}
+          style={{ transitionDelay: `${i * 80}ms` }}
         >
           <img
             src={`/icons/categories/${category.slug}.svg`}

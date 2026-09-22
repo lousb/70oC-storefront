@@ -178,21 +178,25 @@
     /* On the grid like everything else now: left 3 icons sit in
        columns 6–8 (justified start), right 3 in columns 11–13
        (justified end) — symmetric about the 18-column grid's center,
-       independent of icon count via explicit nth-child placement.
-       Starts translated above the (clipped) footer and fades/slides
-       down into place once scrolled into view; see FooterIconRow. */
+       independent of icon count via explicit nth-child placement. The
+       row itself no longer animates - each icon (.iconLink) fades in
+       on its own, staggered, once this scrolls into view; see
+       FooterIconRow. */
     display: grid;
     grid-template-columns: repeat(var(--grid-columns), 1fr);
     column-gap: var(--grid-gutter);
-    transform: translateY(-150%);
-    opacity: 0;
-    transition:
-      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 0.9s ease;
   }
 
-  .iconRow.iconRowInView {
-    transform: translateY(0);
+  /* Opacity-only reveal (no slide/transform) - each icon fades in on
+     its own schedule via the inline transition-delay FooterIconRow sets
+     per item, so they stagger in one after another instead of all at
+     once. */
+  .iconLink {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .iconRowInView .iconLink {
     opacity: 1;
   }
 
