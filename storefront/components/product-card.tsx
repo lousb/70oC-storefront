@@ -1,29 +1,54 @@
+import NextImage from "next/image";
+import { Link } from "next-view-transitions";
+import Price from "./price";
 import s from "./product-card.module.css";
 
-export type DemoProduct = {
+export type ListedProduct = {
   id: string;
+  slug: string;
   index: string;
   category: string;
   title: string;
-  price: string;
+  price: number | null;
+  imageUrl?: string | null;
+  // Fallback tonal color, used only when the product has no gallery image
+  // yet in Studio and no Shopify featured image either — same palette the
+  // Home/Stories placeholders use, so an incomplete product still looks
+  // intentional rather than broken.
   color: string;
 };
 
-// Demo card: no real Shopify product wired up yet, so the cover is a
-// flat tonal placeholder and the title falls back to "Title" (the
-// Sanity field name) rather than any invented product copy.
-export function ProductCard({ product }: { product: DemoProduct }) {
+export function ProductCard({ product }: { product: ListedProduct }) {
   return (
-    <article className={s.card}>
-      <div className={s.cover} style={{ backgroundColor: product.color }} />
+    <Link href={`/products/${product.slug}`} className={s.card}>
+      <div className={s.cover}>
+        {product.imageUrl ? (
+          <NextImage
+            src={product.imageUrl}
+            fill
+            alt={`Image for product: ${product.title}`}
+            style={{ objectFit: "cover" }}
+            sizes="(min-width: 768px) 25vw, 50vw"
+          />
+        ) : (
+          <div
+            className={s.coverFallback}
+            style={{ backgroundColor: product.color }}
+          />
+        )}
+      </div>
       <div className={s.caption}>
         <div className={s.captionLeft}>
           <span className={s.index}>{product.index}</span>
           <span className={s.category}>{product.category}</span>
           <span className={s.title}>{product.title}</span>
         </div>
-        <span className={s.price}>{product.price}</span>
+        {product.price != null && (
+          <span className={s.price}>
+            <Price amount={String(product.price)} currencyCode="AUD" />
+          </span>
+        )}
       </div>
-    </article>
+    </Link>
   );
 }

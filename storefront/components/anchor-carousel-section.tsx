@@ -70,7 +70,13 @@ export function AnchorCarouselSection({
   const images: [SanityImageField, null, SanityImageField] = [data?.image1, null, data?.image3];
 
   return (
-    <section className={s.section} aria-label={categoryTitle}>
+    <section className={s.section} aria-label={categoryTitle} data-snap-section>
+      {/* Desktop-only parallax drift as this section gets covered by the
+          next one — see components/home-parallax.tsx and the
+          @media (min-width: 769px) rule below. A plain passthrough
+          wrapper on mobile (no pinning there, nothing to parallax
+          against). */}
+      <div className={s.parallaxLayer}>
       {images.map((image, i) => {
         if (i === 1) {
           return (
@@ -194,6 +200,7 @@ export function AnchorCarouselSection({
             <SanityLink link={link}>{link.label || `Shop ${categoryTitle}`}</SanityLink>
           </div>
         )}
+      </div>
       </div>
     </section>
   );

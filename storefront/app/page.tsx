@@ -1,4 +1,7 @@
 import { AnchorCarouselSection } from "../components/anchor-carousel-section";
+import { HomeScrollSnap } from "../components/home-scroll-snap";
+import { HomeParallax } from "../components/home-parallax";
+import { Footer } from "../components/footer";
 import { pickRandomTones } from "../lib/demo-tones";
 import { sanityFetch } from "../data/sanity/";
 import { HOME_QUERY } from "../data/sanity/queries";
@@ -30,6 +33,13 @@ export default async function Page() {
   // there's no reason the homepage should show nothing until they do.
   return (
     <div>
+      {/* Renders nothing themselves — just wire up section-boundary
+          scroll snapping and the desktop-only pin/cover parallax (each
+          AnchorCarouselSection + the Footer below carry
+          data-snap-section) for as long as this page is mounted. */}
+      <HomeScrollSnap />
+      <HomeParallax />
+
       {HOME_ANCHORS.map(({ title, slug }) => (
         <AnchorCarouselSection
           key={slug}
@@ -43,6 +53,9 @@ export default async function Page() {
           tones={pickRandomTones(2) as [string, string]}
         />
       ))}
+
+      {/* Home-only, as the final scroll-snap stop — see app/layout.tsx. */}
+      <Footer />
     </div>
   );
 }

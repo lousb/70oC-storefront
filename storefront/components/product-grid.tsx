@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ProductCard, type DemoProduct } from "./product-card";
+import { ProductCard, type ListedProduct } from "./product-card";
 import s from "./product-grid.module.css";
 
 const ANCHORS = [
@@ -19,7 +19,7 @@ type View = (typeof VIEW_OPTIONS)[number];
 // View 1/2/3 = 2/4/6 columns, matching Shop 1A (View 1/2/3) references.
 const COLUMNS_BY_VIEW: Record<View, number> = { 1: 2, 2: 4, 3: 6 };
 
-export function ProductGrid({ products }: { products: DemoProduct[] }) {
+export function ProductGrid({ products }: { products: ListedProduct[] }) {
   const [view, setView] = useState<View>(1);
   const [anchor, setAnchor] = useState<string | null>(null);
   const [anchorOpen, setAnchorOpen] = useState(false);

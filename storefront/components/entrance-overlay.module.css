@@ -1,0 +1,58 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.78s ease;
+}
+
+/* First-ever visit only — the overlay waits for a click instead of
+   auto-hiding, so it needs to actually be interactive/clickable. */
+.overlay[data-clickable="true"] {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.overlay[data-hiding="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Matches the site's own body-copy treatment (see .overlayText in
+   anchor-carousel-section.module.css) — same size, weight, line-height,
+   letter-spacing and centered max-width — just white-on-black instead of
+   white-on-image. */
+.text {
+  margin: 0;
+  width: min(44ch, calc(100% - var(--grid-margin) * 2));
+  color: #fff;
+  font-size: var(--font-size);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+/* Each word animates in on its own — opacity 0 -> 1, y 20 -> 0 — with a
+   per-word transition-delay set inline (see entrance-overlay.tsx) so
+   they reveal left-to-right, one after another, instead of all at once.
+   The space between words is a plain text node in the markup (not part
+   of this span), so it's never animated and word spacing/wrapping stays
+   completely normal throughout the reveal. */
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  will-change: opacity, transform;
+}
+
+.text[data-revealed="true"] .word {
+  opacity: 1;
+  transform: translateY(0);
+}

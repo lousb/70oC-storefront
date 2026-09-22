@@ -7,7 +7,7 @@ import { useCart } from "./cart-context";
 import s from "../products/[slug]/page.module.css";
 
 export function AddToCart({ product }: { product: Product }) {
-  const { variants, availableForSale, priceRange } = product;
+  const { variants, availableForSale } = product;
   const { addCartItem } = useCart();
   const { state } = useProduct();
   const [added, setAdded] = useState(false);
@@ -21,11 +21,6 @@ export function AddToCart({ product }: { product: Product }) {
   const defaultVariantId = variants.length === 1 ? variants[0]?.id : undefined;
   const selectedVariantId = variant?.id || defaultVariantId;
   const finalVariant = variants.find((v) => v.id === selectedVariantId)!;
-
-  const price = new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: priceRange.minVariantPrice.currencyCode,
-  }).format(Number(priceRange.minVariantPrice.amount));
 
   const handleAdd = () => {
     if (!finalVariant || !availableForSale) return;
@@ -49,15 +44,10 @@ export function AddToCart({ product }: { product: Product }) {
         disabled={disabled}
         aria-label={added ? "Added" : label}
       >
-        {/* Price left */}
-        <span
-          style={{
-            position: "relative",
-            overflow: "hidden",
-            height: "1.2em",
-            display: "inline-block",
-          }}
-        >
+        {/* Label — slides up to "Added" on add. No price here; it's
+            already shown up top next to the title (.priceTop) on desktop,
+            and the button's own price used to just duplicate it. */}
+        <span style={{ position: "relative", height: "1.2em", overflow: "hidden", display: "inline-block" }}>
           <span
             style={{
               display: "block",
@@ -65,7 +55,7 @@ export function AddToCart({ product }: { product: Product }) {
               transition: "transform 0.25s ease",
             }}
           >
-            {price}
+            {label}
           </span>
           <span
             style={{
@@ -78,19 +68,6 @@ export function AddToCart({ product }: { product: Product }) {
             }}
           >
             Added
-          </span>
-        </span>
-
-        {/* Label right — slides up on added */}
-        <span style={{ position: "relative", height: "1.2em", overflow: "hidden", display: "inline-block" }}>
-          <span
-            style={{
-              display: "block",
-              transform: added ? "translateY(-100%)" : "translateY(0)",
-              transition: "transform 0.25s ease",
-            }}
-          >
-            {label}
           </span>
         </span>
       </button>

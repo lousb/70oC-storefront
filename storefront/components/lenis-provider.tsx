@@ -4,6 +4,14 @@ import Lenis from "lenis";
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { PropsWithChildren } from "react";
+import { setLenis } from "./lenis-store";
+
+// Fired on window right after the shared Lenis instance is created and
+// registered in lenis-store, so components that mount before this
+// provider's own effect runs (React fires child effects before parent
+// effects, and this provider wraps the page content) can pick it up
+// instead of racing getLenis() against a still-null store.
+export const LENIS_READY_EVENT = "lenis:ready";
 
 const LenisProvider = ({ children }: PropsWithChildren) => {
   const pathname = usePathname();
@@ -24,6 +32,8 @@ const LenisProvider = ({ children }: PropsWithChildren) => {
     });
 
     lenisRef.current = lenis;
+    setLenis(lenis);
+    window.dispatchEvent(new Event(LENIS_READY_EVENT));
 
     const raf = (time: number) => {
       lenis.raf(time);
@@ -33,6 +43,7 @@ const LenisProvider = ({ children }: PropsWithChildren) => {
     requestAnimationFrame(raf);
 
     return () => {
+      setLenis(null);
       lenis.destroy();
     };
   }, [isStudio]);

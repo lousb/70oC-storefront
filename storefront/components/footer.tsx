@@ -26,7 +26,14 @@ function Placeholder({ children }: { children: React.ReactNode }) {
   return <span className={s.placeholder}>{children}</span>;
 }
 
-export async function Footer() {
+// `sticky` controls the home page's scroll-snap "cover the previous
+// section" treatment (see footer.module.css's .sticky modifier) - true
+// by default to match app/page.tsx's existing usage there. The sitewide
+// instance rendered by ConditionalFooter passes sticky={false} since it's
+// a normal block at the end of an ordinary page, not part of a
+// scroll-snap stack, and the sticky behaviour would otherwise paint the
+// footer over that page's own content instead of sitting below it.
+export async function Footer({ sticky = true }: { sticky?: boolean } = {}) {
   const { data: settings } = await sanityFetch({
     query: SETTINGS_QUERY,
   });
@@ -37,7 +44,10 @@ export async function Footer() {
   const connectLinks = footer?.connectLinks ?? [];
 
   return (
-    <footer className={s.footer}>
+    <footer
+      className={sticky ? `${s.footer} ${s.sticky}` : s.footer}
+      data-snap-section={sticky ? "" : undefined}
+    >
       <FooterIconRow />
 
       <div className={`${s.section} ${s.shop}`}>

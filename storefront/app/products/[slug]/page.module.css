@@ -1,37 +1,67 @@
 .page {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--main-gap);
-  align-items: start;
-  padding: var(--main-padding);
-  & > * {
-    width: 100%;
-  }
+  /* Real flex siblings now (not fixed/out-of-flow) — see product-section.tsx,
+     which uses GSAP ScrollTrigger's `pin` to hold .productDetails on
+     screen only for the scroll distance of this row (start/end match this
+     element's own top/bottom), releasing it to resume normal flow once
+     the gallery finishes, instead of staying fixed for the entire page
+     (which used to run it straight into the footer). */
+  display: flex;
+  align-items: flex-start;
 }
 
-/* Right column — the image stack (see Gallery). Explicit placement so it
-   sits on the right regardless of DOM order (kept first in the DOM so it
-   paints before the sticky text panel). */
+/* Right column — the image stack (see Gallery). 50% viewport width, flush
+   to the top and right edges of the page (no padding, no gap between
+   stacked images — see .galleryStack). Pushed to the right via
+   margin-left: auto, and never shrunk by the flex row. */
 .galleryColumn {
-  grid-column: 2;
-  aspect-ratio: 1.7;
+  width: 50vw;
+  margin-left: auto;
+  margin-right: -20px;
+  flex-shrink: 0;
+  /* DOM order is now gallery-first (see product-section.tsx, for mobile's
+     benefit) — order: 2 puts it back on the right on desktop, where .page
+     is a flex row. order has no effect on mobile (.page becomes
+     display: block there), so mobile just follows DOM order instead. */
+  order: 2;
 }
 
-/* Left column — sticky text panel (title/price, description, notes, Add to
-   Cart, accordion). Matches Set-Up-Components/ProductPage: a ~300px column
-   pinned to the left while the gallery stack scrolls past it. */
+/* Left column — text panel (title/price, description, Add to Cart,
+   accordion). Normal flow (required for GSAP's pin/spacer mechanism to
+   hand off cleanly from fixed back to static right where it releases —
+   see product-section.tsx), 4 grid columns wide to match the site's
+   column tokens (styles/globals.css), matching
+   Set-Up-Components/ProductPage's IPP 1A reference. */
 .productDetails {
-  grid-column: 1;
-  width: 100%;
-  max-width: 300px;
-  position: sticky;
-  top: 60px;
-  height: calc(100vh - 120px);
+  /* Positioned (not just a flex item) so the floating category icon below
+     can sit inside it as a normal position:absolute child — that way the
+     icon automatically follows this panel through GSAP's fixed/static
+     toggling (see product-section.tsx) with no GSAP code of its own.
+     z-index: 0 (not just position:relative) so it establishes its own
+     stacking context — .panelBackground's z-index: -1 needs that to stay
+     safely scoped inside this box instead of escaping to compete with
+     unrelated ancestors' stacking. */
+  position: relative;
+  z-index: 0;
+  /* See .galleryColumn's order comment — this puts the text panel back on
+     the left on desktop despite now being second in the DOM. */
+  order: 1;
+  flex-shrink: 0;
+  width: calc(
+    (
+        100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+          var(--grid-gutter)
+      ) /
+      var(--grid-columns) * 4 + 3 * var(--grid-gutter)
+  );
+  margin-top: 60px;
+  /* Content-height, not viewport-height - top-aligned and free to
+     grow when the accordion expands (a fixed height here used to
+     center+overflow content both above the header and below the
+     viewport). */
   padding-block-start: calc(var(--main-padding) * 2);
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   flex-direction: column;
-  padding-inline: var(--main-padding);
 }
 
 .headerRow {
@@ -88,24 +118,10 @@
   text-decoration: unset;
 }
 
-/* Top/Middle/Base Notes */
-.notesList {
-  margin: 1em 0 0;
-}
-
-.notesRow {
-  display: flex;
-  gap: 0.75em;
-  padding: 0.15em 0;
-}
-
-.notesLabel {
-  flex: 0 0 90px;
-  opacity: 0.6;
-}
-
-.notesValue {
-  opacity: 0.6;
+/* Optional editorial description override (replaces the Shopify
+   description when set in Sanity). */
+.editorialDescription {
+  margin: 0;
 }
 
 /* Add to Cart — plain text row, same size/weight as every other line in the
@@ -121,8 +137,6 @@
   padding: 0.6em 0;
   background: none;
   border: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
   font: inherit;
   color: inherit;
   text-align: left;
@@ -175,11 +189,11 @@
   }
 }
 
-/* Gallery */
+/* Gallery — no gap between stacked images, flush edge to edge. */
 .galleryStack {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
 }
 
 .galleryCarousel {
@@ -204,7 +218,7 @@
 }
 
 .descriptionTop p {
-  opacity: 0.6;
+  opacity: 0.25;
 }
 
 .dots {
@@ -229,7 +243,9 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
   appearance: none;
   -webkit-appearance: none;
   flex-shrink: 0;
@@ -243,17 +259,10 @@
 
 /* Mobile */
 @media (max-width: 768px) {
-  .page {
-    grid-template-columns: 1fr;
-    padding: 0;
-    gap: 0;
-  }
-
-  /* Only one track on mobile — reset explicit placement so nothing tries
-     to reach for a second column that no longer exists. */
-  .galleryColumn,
-  .productDetails {
-    grid-column: 1;
+  .galleryColumn {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .galleryStack {
@@ -264,10 +273,14 @@
     display: block;
   }
 
+  .page {
+    display: block;
+  }
+
   .productDetails {
-    width: 100% !important;
+    width: 100%;
     max-width: 100%;
-    position: static;
+    margin-top: 0;
     height: auto;
     padding: 20px;
     padding-block-start: var(--main-padding);
@@ -276,5 +289,424 @@
   .descriptionTop {
     padding-top: 0;
     width: 90%;
+  }
+}
+
+/* Floating category-icon watermark. Lives INSIDE .productDetails
+   (position:absolute against it, see FloatingCategoryIcon/product-section)
+   so it automatically pins/releases together with the text panel — no
+   separate GSAP position code needed, it just follows its positioned
+   parent through GSAP's fixed/static toggling. Desktop: offset + sized to
+   land on grid columns 7-13 (6-of-18), computed relative to
+   .productDetails' own left edge, which already sits on column 1's start.
+   Mobile: simpler near-full-width placement (.productDetails is already
+   ~edge-to-edge there, so no viewport breakout math is needed). Icon
+   treatment matches components/anchor-carousel-section.module.css's
+   introIconBox/.introIcon. */
+.floatingIconBox {
+  position: absolute;
+  /* Centered against the viewport height (not .productDetails' own height,
+     which is content-height now and varies with how much text is in the
+     panel) so it stays vertically centered on screen for the whole time
+     the panel is pinned, instead of drifting with content length. */
+  top: 50vh;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+  /* Above both the panel's own text content and the gallery images next
+     to it — productDetails (positioned) already paints above the
+     non-positioned .galleryColumn regardless of z-index, but this makes
+     "sits in front of both" explicit rather than incidental. */
+  z-index: 5;
+  /* Blend mode lives here, not on .floatingIcon itself — same reasoning
+     as components/floating-logo.module.css (blend on the outer layer,
+     never on an element that also has `filter`/an animated `transform`,
+     which is a known cross-browser blend trap: several engines render a
+     filtered/transformed element to an offscreen buffer and composite
+     that with plain alpha instead of the requested blend, silently
+     no-op'ing it). */
+  mix-blend-mode: difference;
+}
+
+@media (min-width: 769px) {
+  .floatingIconBox {
+    left: calc(
+      6 *
+        (
+          (
+              100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+                var(--grid-gutter)
+            ) /
+            var(--grid-columns)
+        ) +
+        6 * var(--grid-gutter)
+    );
+    width: calc(
+      6 *
+        (
+          (
+              100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+                var(--grid-gutter)
+            ) /
+            var(--grid-columns)
+        ) +
+        5 * var(--grid-gutter)
+    );
+  }
+}
+
+.floatingIcon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* The 02Icons PNGs are near-black line art — invert to near-white so
+     .floatingIconBox's mix-blend-mode: difference actually inverts
+     against whatever's behind it (same recipe as floating-logo's
+     white-filled SVGs), instead of near-black-vs-anything being a
+     near no-op. No mix-blend-mode here — see .floatingIconBox. */
+  filter: invert(1);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  /* Not part of the mobile reference at all — only the small 3-icon row
+     (see .iconRow) survives to mobile. Without this, the base rules above
+     (width: 100%, aspect-ratio: 1, vertically centered against whatever
+     .productDetails' current auto content-height happens to be) render as
+     a near-full-width square landing mid-way through the text content —
+     the overlap bug seen in the mobile screenshot. */
+  .floatingIconBox {
+    display: none;
+  }
+}
+
+/* ---- Panel background — pink by default, black when reviews are open ----
+   A separate full-bleed layer rather than a background-color directly on
+   .productDetails: .productDetails itself is only as wide as its own text
+   column (4 grid columns), but Set-Up-Components/ProductPage's reference
+   fills the *entire* left half of the page (up to the image column) with
+   this color. Sized to 50vw (matching .galleryColumn's own width) and
+   positioned at .productDetails' own left edge so it reads as "the left
+   half's background" regardless of how narrow the text column itself is.
+   z-index: -1 (safe because .productDetails now has z-index: 0 of its
+   own, see above) keeps it behind every other bit of panel content. */
+.panelBackground {
+  /* top+bottom (not height: 100%) so this fills the parent's actual
+     rendered height even when .productDetails' own height is "auto" (the
+     mobile case) — a percentage height on an absolutely positioned child
+     of an auto-height ancestor resolves to auto per spec (i.e. collapses
+     to 0 here, since this element has no content of its own), while
+     pinning both top and bottom edges doesn't have that pitfall. */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50vw;
+  z-index: -1;
+  background-color: #f6dcd5; /* approximate — sample the real value from Figma when handy */
+  transition: background-color 0.4s ease;
+  pointer-events: none;
+}
+
+.panelBackground[data-reviews-open="true"] {
+  background-color: #000;
+}
+
+/* Reviews-open flips the panel to white-on-black — same trick as
+   .overlayText elsewhere on the site (color inherits, so existing
+   opacity-based muting on labels/notes still reads correctly on black). */
+.productDetails:has(.panelBackground[data-reviews-open="true"]) {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  /* Mobile never fills the whole viewport width with this color — the
+     text column already runs edge-to-edge there (see .productDetails'
+     own mobile width: 100% override), so the panel's own background
+     serves the same purpose without a separate full-bleed layer. */
+  .panelBackground {
+    width: 100%;
+  }
+}
+
+/* Normal-flow content of the panel, as opposed to .panelBackground (the
+   full-bleed color layer behind it) and .reviewsOverlay (the covering
+   layer in front of it). padding-top clears the fixed header — see
+   .reviewsOverlay below for why that needs the same padding again rather
+   than inheriting this. */
+.panelContent {
+  padding-top: 100px;
+}
+
+@media (max-width: 768px) {
+  .panelContent {
+    padding-top: 100px;
+  }
+}
+
+/* ---- Rating link — "4.8/5 (7 Reviews)", sits between the title row and
+   the description. Desktop: swaps the panel's lower half over to the
+   reviews table in place. Mobile: scrolls down to the static reviews
+   section at the bottom of the page. Plain text button, no chrome, matches
+   every other line in the panel. ---- */
+.ratingLink {
+  display: block;
+  margin: 0.4em 0 1em;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+
+/* ---- Add to Cart row — the button itself already shows the price on
+   its left side (see app/_cart/add-to-cart.tsx), so nothing extra is
+   added here; a second price element would just duplicate it. Desktop
+   still shows its own separate price up top next to the title
+   (.priceTop) — hidden on mobile since the button's own price covers
+   it there. ---- */
+.addToCartRow {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  width: 100%;
+  margin-block: 1em;
+
+  form,
+  button {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .priceTop {
+    display: none;
+  }
+}
+
+/* ---- Small icon row — 3 category icons below Add To Cart, above the
+   accordion. Thin line-art SVGs (public/icons/categories/), not the big
+   PNG watermark used for .floatingIcon. ---- */
+.iconRow {
+  display: flex;
+  gap: 14px;
+  margin-block: 1.2em;
+}
+
+.smallIcon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  /* Source SVGs are white line art (fill/stroke="white") - invert to
+     black so they read against the panel's light background. */
+  filter: invert(1);
+}
+
+/* ================= Reviews ================= */
+
+/* Shared table (see reviews-panel.tsx / review-row.tsx) — used both as the
+   desktop in-place swap and the mobile static section below. Given
+   position: relative + z-index here so it paints above the floating
+   category icon (z-index: 5) regardless of DOM order, per spec: "the icon
+   ... below the review section". */
+.reviewsPanel {
+  position: relative;
+  z-index: 10;
+}
+
+.reviewsPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  margin-bottom: 0.5em;
+}
+
+.reviewsHeading {
+  margin: 0;
+}
+
+.reviewsClose {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.reviewsHeaderRow {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .reviewsHeaderRow {
+    display: grid;
+    grid-template-columns: 90px 130px 60px 1fr 70px 20px;
+    gap: 12px;
+    padding: 0.5em 0;
+    opacity: 0.5;
+    font-size: 0.85em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewRow {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.reviewRowHead {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px 20px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0.7em 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (min-width: 769px) {
+  .reviewRowHead {
+    grid-template-columns: 90px 130px 60px 1fr 70px 20px;
+  }
+}
+
+.reviewAnchor,
+.reviewNumber {
+  display: none;
+  opacity: 0.8;
+}
+
+.reviewAnchorIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 6px;
+  vertical-align: middle;
+  /* Same trick as .floatingIcon — near-black line art inverted so it
+     reads white against this panel's black background. */
+  filter: invert(1);
+}
+
+@media (min-width: 769px) {
+  .reviewAnchor,
+  .reviewNumber {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.reviewName {
+  font-weight: 500;
+}
+
+.reviewProduct {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.reviewRating,
+.reviewToggle {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.reviewDetail {
+  padding: 0 0 1.2em;
+}
+
+.reviewMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5em;
+  margin: 0 0 1em;
+
+  dt {
+    opacity: 0.5;
+    font-size: 0.85em;
+    margin: 0 0 0.2em;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.reviewLabel {
+  opacity: 0.5;
+  font-size: 0.85em;
+  margin: 0 0 0.3em;
+}
+
+.reviewBody {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.85;
+  max-width: 60ch;
+}
+
+/* Desktop-only — covers the whole panel (.panelContent) when the rating
+   link is clicked. .panelBackground (see above) handles flipping the
+   wider pink-to-black fill; this layer just holds the actual review
+   table, sized/positioned to match .productDetails exactly. z-index above
+   .floatingIconBox (5) so the icon sits behind it, per spec. */
+.reviewsOverlay {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .reviewsOverlay {
+    display: block;
+    position: absolute;
+    inset: 0;
+    top: 0;
+    margin-left: -20px;
+    z-index: 20;
+    background-color: #000;
+    color: #fff;
+    padding-top: 100px;
+    overflow-y: auto;
+  }
+}
+
+/* Mobile-only static section — desktop uses .reviewsOverlay above instead
+   (reachable via the same rating link). */
+.reviewsSection {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .reviewsSection {
+    display: block;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-top: 2em;
+    padding: 24px 20px 40px;
+    background: #000;
+    color: #fff;
   }
 }

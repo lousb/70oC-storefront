@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import s from "./page.module.css";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export type AccordionEntry = {
   key: string;
@@ -15,6 +19,15 @@ export type AccordionEntry = {
 // (the separate "Reviews Flyout" reference) are out of scope for now.
 export function Accordion({ items }: { items: AccordionEntry[] }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
+
+  // Opening/closing an item changes .productDetails' own content height
+  // (it's content-height, not a fixed box - see page.module.css), which
+  // GSAP's pin (product-section.tsx) needs to know about so the pinned
+  // panel gets exactly as much scroll room as its current content, on
+  // either side of the toggle.
+  useEffect(() => {
+    ScrollTrigger.refresh();
+  }, [openKey]);
 
   if (items.length === 0) {
     return null;

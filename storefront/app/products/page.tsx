@@ -1,40 +1,51 @@
 import { ProductGrid } from "../../components/product-grid";
 import { pickRandomTones } from "../../lib/demo-tones";
-import type { DemoProduct } from "../../components/product-card";
+import type { ListedProduct } from "../../components/product-card";
+import { sanityFetch } from "../../data/sanity/";
+import { ALL_PRODUCTS_QUERY } from "../../data/sanity/queries";
 
-const ANCHORS = [
-  "Pressure",
-  "Flow",
-  "Momentum",
-  "Repetition",
-  "Balance",
-  "Bloom",
-];
+// Mirrors HOME_CATEGORIES in studio/src/constants.ts — the two workspaces
+// don't share code, so this display-label lookup is duplicated here the
+// same way app/products/[slug]/page.tsx already does (category is stored
+// as the uppercase `value`, e.g. "PRESSURE", not the display title).
+const CATEGORY_LABELS: Record<string, string> = {
+  PRESSURE: "Pressure",
+  FLOW: "Flow",
+  MOMENTUM: "Momentum",
+  REPETITION: "Repetition",
+  BALANCE: "Balance",
+  BLOOM: "Bloom",
+};
 
-// No real Shopify products are synced yet — this renders a working demo
-// of the Shop All layout (Set-Up-Components/Shop All) with 6 placeholder
-// items, one per Anchor/category, "Title" standing in for the Sanity/
-// Shopify title field until real products exist. Colors are randomized
-// per request in this Server Component, then passed down as data, so
-// there's no client/server hydration mismatch.
-function getDemoProducts(): DemoProduct[] {
-  const colors = pickRandomTones(ANCHORS.length);
-  return ANCHORS.map((category, i) => ({
-    id: `demo-product-${i}`,
+export default async function Page() {
+  const { data } = await sanityFetch({
+    query: ALL_PRODUCTS_QUERY,
+    stega: false,
+  });
+
+  // Fallback tones only cover products with no gallery image in Studio yet
+  // and no Shopify featured image either — everything else renders its
+  // real photo.
+  const tones = pickRandomTones(data.length);
+
+  const products: ListedProduct[] = data.map((product, i) => ({
+    id: product._id,
+    slug: product.slug ?? "",
     index: String(i + 1).padStart(3, "0"),
-    category,
-    title: "Title",
-    price: "$90",
-    color: colors[i],
+    category: product.category ? CATEGORY_LABELS[product.category] ?? product.category : "Uncategorised",
+    title: product.title ?? "Untitled",
+    price: product.price,
+    imageUrl: product.imageUrl,
+    color: tones[i],
   }));
-}
-
-export default function Page() {
-  const products = getDemoProducts();
 
   return (
     <div>
-      <ProductGrid products={products} />
+      {products.length === 0 ? (
+        <p>No products yet.</p>
+      ) : (
+        <ProductGrid products={products} />
+      )}
     </div>
   );
 }

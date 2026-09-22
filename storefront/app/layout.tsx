@@ -13,8 +13,10 @@ import { HOME_QUERY, SETTINGS_QUERY } from "../data/sanity/queries";
 import { resolveOpenGraphImage } from "../sanity/utils";
 import { handleError } from "./client-utils";
 
-import { Footer } from "../components/footer";
 import GridOverlay from "../components/grid-overlay";
+import { EntranceOverlay } from "../components/entrance-overlay";
+import { ConditionalFooter } from "../components/conditional-footer";
+import { Footer } from "../components/footer";
 import { FloatingLogo } from "../components/floating-logo";
 import { HeaderContent } from "../components/header-content";
 import localFont from 'next/font/local'
@@ -90,6 +92,8 @@ export default async function RootLayout({
     <ViewTransitions>
     <html lang="en" className={abcRom.variable}>
       <body>
+        {/* Basic entrance animation, first visit / refresh only — see component comment. */}
+        <EntranceOverlay />
         {/* Dev aid: Option/Alt + G toggles a red grid overlay to check layout against the column grid. */}
         <GridOverlay />
         {/* Floating, fixed "70°C" wordmark — first piece of the header. */}
@@ -118,8 +122,15 @@ export default async function RootLayout({
               </LenisProvider>
             </Suspense>
            </main>
-         
-          <Footer />
+
+          {/* Every route except home (which renders its own, as the
+              final section of its scroll-snap sequence — see
+              app/page.tsx) and /studio. Footer is rendered here (server
+              side, where its own sanityFetch is allowed to run) and
+              handed down as a prop — see conditional-footer.tsx for why
+              it can't just be imported directly into that client
+              component. */}
+          <ConditionalFooter footer={<Footer sticky={false} />} />
         </CartProvider>
         </MobilePanelProvider>
         <Analytics />

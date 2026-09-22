@@ -31,7 +31,7 @@ const pageBuilderFields = /* groq */ `
       "title": store.title,
       "slug": store.slug.current,
       "price": store.priceRange.minVariantPrice,
-      "imageUrl": store.previewImageUrl,
+      "imageUrl": coalesce(gallery[0].media.image.asset->url, store.previewImageUrl),
       "hoverMedia": gallery[featuredHover == true][0].media {
         mediaType,
         "imageUrl": select(mediaType == "image" => image.asset->url),
@@ -216,8 +216,13 @@ export const ALL_COLLECTIONS_QUERY = defineQuery(`
 `);
 
 export const ALL_PRODUCTS_QUERY = defineQuery(`
-  *[_type == "product" && defined(store.slug.current)] | order(date desc, _updatedAt desc) {
-    ...,
+  *[_type == "product" && defined(store.slug.current) && !store.isDeleted] | order(store.title asc) {
+    _id,
+    "title": store.title,
+    "slug": store.slug.current,
+    category,
+    "price": store.priceRange.minVariantPrice,
+    "imageUrl": coalesce(gallery[0].media.image.asset->url, store.previewImageUrl),
   }
 `);
 
@@ -237,9 +242,7 @@ export const PRODUCT_QUERY = defineQuery(`
     "defaultProductInformation": *[ _type == 'settings'][0].defaultProductInformation,
     productInformation,
     category,
-    topNotes,
-    middleNotes,
-    baseNotes,
+    description,
     ingredients,
     "howToUse": howToUse->{title, content},
     "shipping": shipping->{title, content},
@@ -261,9 +264,6 @@ export const PRODUCT_QUERY = defineQuery(`
         "aspectRatio": media.video.asset->data.aspect_ratio,
       }),
       "featuredHover": featuredHover,
-    },
-    pageBuilder[]{
-      ${pageBuilderFields}
     },
     pageSeo{${pageSeoFields}}
   }

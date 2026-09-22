@@ -5,20 +5,20 @@ import { useOptimistic } from "next-sanity/hooks";
 import { Link } from 'next-view-transitions'
 
 import {
-  COLLECTION_QUERYResult,
-  HOME_QUERYResult,
-  PAGE_QUERYResult,
-  PRODUCT_QUERYResult,
+  COLLECTION_QUERY_RESULT,
+  HOME_QUERY_RESULT,
+  PAGE_QUERY_RESULT,
+  PRODUCT_QUERY_RESULT,
 } from "../sanity.types";
 import { studioUrl } from "../sanity/api";
 import { dataAttr } from "../sanity/utils";
 import { BlockRenderer } from "./block-renderer";
 
 type Page =
-  | NonNullable<PAGE_QUERYResult>
-  | NonNullable<HOME_QUERYResult>
-  | NonNullable<PRODUCT_QUERYResult>
-  | NonNullable<COLLECTION_QUERYResult>["editorial"];
+  | NonNullable<PAGE_QUERY_RESULT>
+  | NonNullable<HOME_QUERY_RESULT>
+  | NonNullable<PRODUCT_QUERY_RESULT>
+  | NonNullable<COLLECTION_QUERY_RESULT>["editorial"];
 
 type PageBuilderSection = {
   _key: string;

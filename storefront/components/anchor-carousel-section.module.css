@@ -8,12 +8,53 @@
 */
 
 .section {
+  /* Mobile default: plain stacked flow, same as before the pin/cover
+     effect existed — sections just scroll past one another normally.
+     Pinning is desktop-only, see the @media block below. Scroll
+     snapping (home-scroll-snap.tsx) applies either way, since it's
+     driven by section height, not by how a section is positioned. */
   position: relative;
   width: 100vw;
   margin-left: calc(50% - 50vw);
   height: 100vh;
   overflow: hidden;
   background-color: #000;
+}
+
+@media (min-width: 769px) {
+  .section {
+    /* Sticky + no explicit z-index (later sections simply win DOM-order
+       stacking among themselves; Footer's own explicit z-index in
+       footer.module.css puts it above all of these regardless) is what
+       gives the "next section slides up and covers this one" effect:
+       each section stays pinned at the top of the viewport for the full
+       scroll distance of its own box, and whichever one is later in the
+       DOM paints over the one(s) still pinned beneath it as it arrives.
+       Purely scroll-position-driven, so it works the same however the
+       scroll position got there — including the section-snap
+       corrections in home-scroll-snap.tsx. */
+    position: sticky;
+    top: 0;
+  }
+}
+
+/* Wraps everything a section renders (see anchor-carousel-section.tsx).
+   On mobile it's an inert passthrough — nothing is pinned there, so
+   there's nothing to parallax against. On desktop it drifts upward a
+   little as the next section arrives and covers this one, via the
+   --parallax custom property components/home-parallax.tsx writes onto
+   the section element every scroll frame (0 at the moment this section
+   becomes the pinned one, 1 right before it's fully covered). */
+.parallaxLayer {
+  position: absolute;
+  inset: 0;
+}
+
+@media (min-width: 769px) {
+  .parallaxLayer {
+    transform: translateY(calc(var(--parallax, 0) * -12%));
+    will-change: transform;
+  }
 }
 
 /* ---- background slides — crossfade between the 3 views ---- */

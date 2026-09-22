@@ -48,24 +48,11 @@ export const product = defineType({
       },
     }),
     defineField({
-      name: "topNotes",
-      title: "Top Notes",
-      type: "array",
-      of: [{ type: "string" }],
-      group: "editorial",
-    }),
-    defineField({
-      name: "middleNotes",
-      title: "Middle Notes",
-      type: "array",
-      of: [{ type: "string" }],
-      group: "editorial",
-    }),
-    defineField({
-      name: "baseNotes",
-      title: "Base Notes",
-      type: "array",
-      of: [{ type: "string" }],
+      name: "description",
+      title: "Description",
+      description: "Optional editorial description. Overrides the Shopify description on the storefront when set.",
+      type: "text",
+      rows: 4,
       group: "editorial",
     }),
     defineField({
@@ -118,7 +105,8 @@ export const product = defineType({
     defineField({
       name: "gallery",
       title: "Gallery",
-      description: "Additional media shown after the Shopify featured image.",
+      description:
+        "This product's media. The Shopify image is not used on the storefront — the first item here is what's shown on product listings (Home, Shop, Collections) and is the main image on the product page. Toggle \"Use as hover image on product cards\" on at most one other item for the hover/alternate view on listings.",
       type: "array",
       of: [
         {
@@ -160,26 +148,6 @@ export const product = defineType({
           return true;
         }),
       group: "editorial",
-    }),
-    defineField({
-      name: "pageBuilder",
-      title: "Page Builder",
-      group: "editorial",
-      type: "array",
-      // Add custom block to the list
-      of: [{ type: "editorialBlock" }],
-      options: {
-        insertMenu: {
-          // Configure the "Add Item" menu to display a thumbnail preview of the content type. https://www.sanity.io/docs/array-type#efb1fe03459d
-          views: [
-            {
-              name: "grid",
-              previewImageUrl: (schemaTypeName) =>
-                `/static/page-builder-thumbnails/${schemaTypeName}.webp`,
-            },
-          ],
-        },
-      },
     }),
     defineField({
       name: "store",

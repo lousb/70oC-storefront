@@ -2,9 +2,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Suspense } from "react";
-import { PageBuilder } from "../../../components/page-builder";
 import { CustomPortableText } from "../../../components/custom-portable-text";
-import Price from "../../../components/price";
 import { sanityFetch } from "../../../data/sanity";
 
 import {
@@ -18,7 +16,9 @@ import { AddToCart } from "../../_cart/add-to-cart";
 import s from "./page.module.css";
 import { ProductProvider } from "./product-context";
 import { Gallery } from "./gallery";
-import { Accordion, AccordionEntry } from "./accordion";
+import { AccordionEntry } from "./accordion";
+import { ProductSection } from "./product-section";
+import { ProductDetailsPanel } from "./product-details-panel";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -101,78 +101,110 @@ export default async function Page(props: Props) {
 
   // --- Everything below feeds the sticky left-hand text panel, matching
   // Set-Up-Components/ProductPage's [DESKTOP]/[MOBILE] IPP 1A references
-  // (Category + Title / Price, description, Top/Middle/Base Notes, Add to
-  // Cart, then the Details/Ingredients/How To Use/Shipping/Where We Live
-  // accordion). The "Reviews Flyout" variant and star-rating summary are
-  // out of scope for now — no real review data exists yet.
+  // (Category + Title / Price, description, Add to Cart, then the
+  // Details/Ingredients/How To Use/Shipping/Where We Live accordion). The
+  // "Reviews Flyout" variant and star-rating summary are out of scope for
+  // now — no real review data exists yet.
 
-  const category = productPage?.category ? CATEGORY_LABELS[productPage.category] : null;
-
-  const notes: Array<{ label: string; values: string[] }> = [
-    { label: "Top Notes", values: productPage?.topNotes ?? [] },
-    { label: "Middle Notes", values: productPage?.middleNotes ?? [] },
-    { label: "Base Notes", values: productPage?.baseNotes ?? [] },
-  ].filter((n) => n.values.length > 0);
+  const category = productPage?.category
+    ? CATEGORY_LABELS[productPage.category]
+    : null;
+  // Same icon set/convention as components/anchor-carousel-section.tsx's
+  // intro-view icon (public/icons/02Icons/<slug>.png).
+  const categoryIconSlug = productPage?.category?.toLowerCase();
 
   // "Details" is a flexible, possibly-multi-entry section: per-product
   // productInformation, optionally complemented by the site-wide defaults
   // from Settings — see product.tsx's overwriteDefaultInformationFields.
   const detailsEntries =
     productPage?.overwriteDefaultInformationFields === "noDefaults"
-      ? (productPage?.productInformation ?? []).map((entry) => ({ ...entry, source: "product" as const }))
+      ? (productPage?.productInformation ?? []).map((entry) => ({
+          ...entry,
+          source: "product" as const,
+        }))
       : [
-          ...(productPage?.defaultProductInformation ?? []).map((entry) => ({ ...entry, source: "default" as const })),
-          ...(productPage?.productInformation ?? []).map((entry) => ({ ...entry, source: "product" as const })),
+          ...(productPage?.defaultProductInformation ?? []).map((entry) => ({
+            ...entry,
+            source: "default" as const,
+          })),
+          ...(productPage?.productInformation ?? []).map((entry) => ({
+            ...entry,
+            source: "product" as const,
+          })),
         ];
 
+  // Placeholder copy for any of the 5 accordion rows a product hasn't had
+  // real content entered for yet — so the accordion always shows all 5
+  // (Details / Ingredients / How To Use / Shipping / Where We Live) for a
+  // working demo, per instruction, rather than silently dropping rows
+  // with no CMS content.
+  const ACCORDION_PLACEHOLDER =
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dignissim dui risus, sed laoreet ligula tristique a. Integer ac porttitor lacus, a blandit nulla.";
+
+  const realDetailsEntries = detailsEntries.filter(
+    (entry) => entry.title && entry.content,
+  );
+
   const accordionItems: AccordionEntry[] = [
-    ...detailsEntries
-      .filter((entry) => entry.title && entry.content)
-      .map((entry) => ({
-        // _key is only unique within its own array (Settings' defaults vs
-        // this product's own entries), so prefix by source to keep React
-        // keys collision-free when the two lists are combined.
-        key: `${entry.source}-${entry._key}`,
-        title: entry.title as string,
-        content: <CustomPortableText value={entry.content as any} />,
-      })),
-    ...(productPage?.ingredients
-      ? [
+    realDetailsEntries.length
+      ? realDetailsEntries.map((entry) => ({
+          // _key is only unique within its own array (Settings' defaults
+          // vs this product's own entries), so prefix by source to keep
+          // React keys collision-free when the two lists are combined.
+          key: `${entry.source}-${entry._key}`,
+          title: entry.title as string,
+          content: <CustomPortableText value={entry.content as any} />,
+        }))
+      : [
           {
-            key: "ingredients",
-            title: "Ingredients",
-            content: <p>{productPage.ingredients}</p>,
+            key: "details-placeholder",
+            title: "Details",
+            content: <p>{ACCORDION_PLACEHOLDER}</p>,
           },
-        ]
-      : []),
-    ...(productPage?.howToUse?.content
-      ? [
-          {
-            key: "how-to-use",
-            title: "How To Use",
-            content: <CustomPortableText value={productPage.howToUse.content as any} />,
-          },
-        ]
-      : []),
-    ...(productPage?.shipping?.content
-      ? [
-          {
-            key: "shipping",
-            title: "Shipping",
-            content: <CustomPortableText value={productPage.shipping.content as any} />,
-          },
-        ]
-      : []),
-    ...(productPage?.whereWeLive?.content
-      ? [
-          {
-            key: "where-we-live",
-            title: "Where We Live",
-            content: <CustomPortableText value={productPage.whereWeLive.content as any} />,
-          },
-        ]
-      : []),
-  ];
+        ],
+    [
+      {
+        key: "ingredients",
+        title: "Ingredients",
+        content: <p>{productPage?.ingredients || ACCORDION_PLACEHOLDER}</p>,
+      },
+    ],
+    [
+      {
+        key: "how-to-use",
+        title: "How To Use",
+        content: productPage?.howToUse?.content ? (
+          <CustomPortableText value={productPage.howToUse.content as any} />
+        ) : (
+          <p>{ACCORDION_PLACEHOLDER}</p>
+        ),
+      },
+    ],
+    [
+      {
+        key: "shipping",
+        title: "Shipping",
+        content: productPage?.shipping?.content ? (
+          <CustomPortableText value={productPage.shipping.content as any} />
+        ) : (
+          <p>{ACCORDION_PLACEHOLDER}</p>
+        ),
+      },
+    ],
+    [
+      {
+        key: "where-we-live",
+        title: "Where We Live",
+        content: productPage?.whereWeLive?.content ? (
+          <CustomPortableText
+            value={productPage.whereWeLive.content as any}
+          />
+        ) : (
+          <p>{ACCORDION_PLACEHOLDER}</p>
+        ),
+      },
+    ],
+  ].flat();
 
   return (
     <Suspense>
@@ -184,61 +216,41 @@ export default async function Page(props: Props) {
       />
       <ProductProvider>
         <div>
-          <div className={s.page}>
-            <div className={s.galleryColumn}>
+          <ProductSection
+            gallery={
               <Gallery
                 variants={product.variants}
-                featuredImage={product.featuredImage}
-                sanityGallery={productPage?.gallery as any ?? []}
+                sanityGallery={(productPage?.gallery as any) ?? []}
               />
-            </div>
-            <div className={s.productDetails}>
-              <div className={s.description}>
-                <div className={s.descriptionTop}>
-                  <div className={s.headerRow}>
-                    <div>
-                      {category && <p className={s.categoryLabel}>{category}</p>}
-                      <h1>{product.title}</h1>
-                    </div>
-                    <p className={s.priceTop}>
-                      <Price
-                        amount={product.priceRange.minVariantPrice.amount}
-                        currencyCode={product.priceRange.minVariantPrice.currencyCode}
-                      />
+            }
+            details={
+              <ProductDetailsPanel
+                category={category}
+                title={product.title}
+                priceAmount={product.priceRange.minVariantPrice.amount}
+                priceCurrencyCode={product.priceRange.minVariantPrice.currencyCode}
+                descriptionNode={
+                  productPage?.description ? (
+                    <p className={s.editorialDescription}>
+                      {productPage.description}
                     </p>
-                  </div>
-
-                  {!!product.descriptionHtml && (
-                    <div
-                      dangerouslySetInnerHTML={{
-                        __html: product.descriptionHtml ?? "",
-                      }}
-                    />
-                  )}
-
-                  {notes.length > 0 && (
-                    <dl className={s.notesList}>
-                      {notes.map(({ label, values }) => (
-                        <div key={label} className={s.notesRow}>
-                          <dt className={s.notesLabel}>{label}:</dt>
-                          <dd className={s.notesValue}>{values.join(", ")}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  )}
-                </div>
-
-                <div style={{ width: "300px" }}>
-                  <AddToCart product={product} />
-                </div>
-
-                <Accordion items={accordionItems} />
-              </div>
-            </div>
-          </div>
-          {!!productPage?.pageBuilder?.length && (
-            <PageBuilder page={productPage} />
-          )}
+                  ) : (
+                    !!product.descriptionHtml && (
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: product.descriptionHtml ?? "",
+                        }}
+                      />
+                    )
+                  )
+                }
+                accordionItems={accordionItems}
+                categoryIconSlug={categoryIconSlug}
+                addToCart={<AddToCart product={product} />}
+              />
+            }
+            categoryIconSlug={categoryIconSlug}
+          />
         </div>
       </ProductProvider>
     </Suspense>

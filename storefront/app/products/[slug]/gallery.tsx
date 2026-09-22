@@ -1,9 +1,7 @@
 "use client";
-import NextImage from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useState } from "react";
 import { MediaItem } from "../../../components/media-item";
-import { Image } from "../../../shopify/types";
 import s from "./page.module.css";
 
 type SanityGalleryItem = {
@@ -14,11 +12,9 @@ type SanityGalleryItem = {
 };
 
 export function Gallery({
-  featuredImage,
   sanityGallery = [],
 }: {
   variants?: any[];
-  featuredImage?: Image | null;
   sanityGallery?: SanityGalleryItem[];
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", dragFree: false });
@@ -35,42 +31,25 @@ export function Gallery({
     return () => { emblaApi.off("select", onSelect); };
   }, [emblaApi, onSelect]);
 
-  const allItems = [
-    {
-      key: "featured",
-      content: (
-        <div style={{ position: "relative", width: "100%", aspectRatio: "4/5", backgroundColor: "#f1f1f1" }}>
-          {/* Title/price-only products (no image uploaded in Shopify yet)
-              simply show the wrapper's flat grey background below. */}
-          {featuredImage?.url && (
-            <NextImage
-              src={featuredImage.url}
-              fill
-              alt={featuredImage.altText ?? ""}
-              style={{ objectFit: "cover", mixBlendMode: "multiply" }}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
-            />
-          )}
-        </div>
-      ),
-    },
-    ...sanityGallery.map((item, i) => ({
-      key: `sanity-${i}`,
-      content: (
-        <div style={{ position: "relative", width: "100%", aspectRatio: "4/5" }}>
-          {item.mediaType && (
-            <MediaItem
-              mediaType={item.mediaType}
-              image={item.image}
-              video={item.video ?? undefined}
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          )}
-        </div>
-      ),
-    })),
-  ];
+  // The Shopify featured image is not used here — Sanity's gallery (edited
+  // per-product in Studio) is the sole source for on-page media, with the
+  // first item doubling as the product's listing/tile image elsewhere on
+  // the site (see product.tsx's gallery field description).
+  const allItems = sanityGallery.map((item, i) => ({
+    key: `sanity-${i}`,
+    content: (
+      <div style={{ position: "relative", width: "100%", aspectRatio: "4/5" }}>
+        {item.mediaType && (
+          <MediaItem
+            mediaType={item.mediaType}
+            image={item.image}
+            video={item.video ?? undefined}
+            sizes="50vw"
+          />
+        )}
+      </div>
+    ),
+  }));
 
   return (
     <>
