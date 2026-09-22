@@ -57,8 +57,11 @@
   /* Content-height, not viewport-height - top-aligned and free to
      grow when the accordion expands (a fixed height here used to
      center+overflow content both above the header and below the
-     viewport). */
-  padding-block-start: calc(var(--main-padding) * 2);
+     viewport). No padding-block-start here - .panelContent's own
+     padding-top (100px, for header clearance) already handles that, and
+     stacking both on top of each other pushed everything down further
+     than intended and put it out of alignment with .reviewsOverlay
+     (which only carries the 100px, not this on top of it too). */
   display: flex;
   justify-content: flex-start;
   flex-direction: column;
@@ -128,11 +131,8 @@
    panel (title, notes, accordion labels). No button chrome, matching the
    reference's unstyled "Add To Cart" text. */
 .addToCart {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 1em;
   margin-block: 1em;
   padding: 0.6em 0;
   background: none;
@@ -476,16 +476,7 @@
    (.priceTop) — hidden on mobile since the button's own price covers
    it there. ---- */
 .addToCartRow {
-  display: flex;
-  align-items: center;
-  gap: 1em;
   width: 100%;
-  margin-block: 1em;
-
-  form,
-  button {
-    flex: 1;
-  }
 }
 
 @media (max-width: 768px) {
@@ -685,6 +676,7 @@
     inset: 0;
     top: 0;
     margin-left: -20px;
+    padding-left: 20px;
     z-index: 20;
     background-color: #000;
     color: #fff;
