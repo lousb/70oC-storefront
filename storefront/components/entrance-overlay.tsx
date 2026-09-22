@@ -11,14 +11,18 @@ import s from "./entrance-overlay.module.css";
 // on ordinary in-app navigation, only on the two cases asked for.
 //
 // No click needed — every load (first visit or a refresh) plays the
-// word-by-word reveal and then auto-hides HOLD_MS after mount, always.
+// word-by-word reveal, waits for the LAST word to finish animating in,
+// holds for HOLD_MS, then fades out.
 const SENTENCE =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas tristique posuere velit, et feugiat lacus tempor non.";
 const WORDS = SENTENCE.split(" ");
 
 const WORD_STAGGER_MS = 54; // delay between each word starting its reveal
-const HOLD_MS = 800; // auto-hide this long after mount — first load or refresh, always
+const WORD_REVEAL_MS = 600; // must match .word's transition duration in the CSS
+const HOLD_MS = 800; // pause after the last word lands, before fading out
 const FADE_MS = 780; // must match .overlay's transition duration in the CSS below
+// Time from the reveal starting until the last word has fully landed.
+const REVEAL_TOTAL_MS = (WORDS.length - 1) * WORD_STAGGER_MS + WORD_REVEAL_MS;
 
 export function EntranceOverlay() {
   const pathname = usePathname();
@@ -45,12 +49,24 @@ export function EntranceOverlay() {
     // paints before flipping to the revealed one — otherwise the browser
     // can coalesce both into a single frame and the transition never
     // plays.
+    // Hide timers start from the moment the reveal actually kicks off
+    // (not mount), so the full sentence always finishes animating in,
+    // then holds HOLD_MS, then fades.
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    let removeTimer: ReturnType<typeof setTimeout> | undefined;
     rafRef.current = requestAnimationFrame(() => {
-      rafRef2.current = requestAnimationFrame(() => setRevealed(true));
+      rafRef2.current = requestAnimationFrame(() => {
+        setRevealed(true);
+        hideTimer = setTimeout(
+          () => setHiding(true),
+          REVEAL_TOTAL_MS + HOLD_MS,
+        );
+        removeTimer = setTimeout(
+          () => setVisible(false),
+          REVEAL_TOTAL_MS + HOLD_MS + FADE_MS,
+        );
+      });
     });
-
-    const hideTimer = setTimeout(() => setHiding(true), HOLD_MS);
-    const removeTimer = setTimeout(() => setVisible(false), HOLD_MS + FADE_MS);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
