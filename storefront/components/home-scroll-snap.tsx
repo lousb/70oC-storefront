@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { getLenis } from "./lenis-store";
 import { LENIS_READY_EVENT } from "./lenis-provider";
 import { getSnapSections, getSnapSectionTops } from "../lib/home-sections";
@@ -32,10 +32,8 @@ import { getSnapSections, getSnapSectionTops } from "../lib/home-sections";
 //
 // 3. Duration scales with how far the correction actually has to travel,
 //    as a share of the section it's happening in — not a flat duration
-//    regardless of distance. Stopping 10% into a section and settling
-//    back needs a quick, small correction; stopping just past the 20%
-//    threshold and continuing on needs something closer to the full
-//    scroll duration. Using Lenis's own configured duration as the
+//    regardless of distance. Snap corrections are always short (the last
+//    15% of a section at most), so they stay quick and soft. Using Lenis's own configured duration as the
 //    "full section" pace keeps the correction's speed consistent with
 //    how fast Lenis was already moving you.
 //
@@ -49,7 +47,10 @@ import { getSnapSections, getSnapSectionTops } from "../lib/home-sections";
 // scrollbar drag) is handled on the native `scrollend` event instead: it
 // fires once that motion has actually finished, and we snap from wherever
 // it rested using the same distance-scaled, Lenis-eased approach.
-const ADVANCE_THRESHOLD = 0.2;
+// A section snaps into place once it fills at least this much of the
+// section-sized window (85%). In between, the user can rest freely
+// between two sections with no snapping at all.
+const SNAP_FILL = 0.85;
 const WHEEL_SETTLE_DELAY = 120; // ms of no wheel input before we treat the user as "stopped"
 // Floor for correction duration, in seconds. Below ~0.5s an eased scroll
 // reads as a snap/jump-cut rather than a glide, no matter how short the
@@ -57,42 +58,28 @@ const WHEEL_SETTLE_DELAY = 120; // ms of no wheel input before we treat the user
 // above that, they just don't get the *full* section-crossing duration.
 const MIN_DURATION = 0.6;
 
-// Resolves which section index a resting scroll position should land on,
-// relative to `fromIndex` (the section last snapped to): you need to
-// cross ADVANCE_THRESHOLD (20%) into the neighboring section — up or
-// down — before it commits there, otherwise it settles back to the
-// section you started from. That's necessarily relative to a
-// remembered "current" section, not a stateless nearest-point lookup.
-//
-// Also returns the height of the section the position was progressing
-// through, so the caller can scale correction duration by how far into
-// that section the scroll actually was.
-function resolveSnapIndex(fromIndex: number, target: number, tops: number[]) {
-  let idx = fromIndex;
-  let sectionHeight: number | undefined;
-
-  if (target >= tops[idx]) {
-    while (idx < tops.length - 1 && tops[idx + 1] <= target) idx++;
-    if (idx < tops.length - 1) {
-      sectionHeight = tops[idx + 1] - tops[idx];
-      const progress = sectionHeight > 0 ? (target - tops[idx]) / sectionHeight : 0;
-      if (progress > ADVANCE_THRESHOLD) idx += 1;
-    }
-  } else {
-    while (idx > 0 && tops[idx - 1] > target) idx--;
-    if (idx > 0) {
-      sectionHeight = tops[idx] - tops[idx - 1];
-      const progress = sectionHeight > 0 ? (tops[idx] - target) / sectionHeight : 0;
-      if (progress > ADVANCE_THRESHOLD) idx -= 1;
-    }
+// Resolves whether a resting scroll position should snap, and where.
+// Between section i and i+1 (tops[i] <= target < tops[i+1]), `progress`
+// is how far section i+1 has come up over section i:
+//   - progress >= SNAP_FILL (85%): section i+1 is 85%+ in view -> snap to it
+//   - progress <= 1 - SNAP_FILL (15%): section i is still 85%+ in view -> snap back to it
+//   - anywhere in between: no snap, the user can sit between sections.
+// Stateless: same answer scrolling up or down.
+function resolveSnapIndex(target: number, tops: number[]) {
+  let i = 0;
+  while (i < tops.length - 1 && tops[i + 1] <= target) i++;
+  if (i >= tops.length - 1) {
+    // Past the last section's top (the footer): nothing below to snap to.
+    return target - tops[i] < 1 ? { index: i, sectionHeight: undefined } : null;
   }
-
-  return { index: idx, sectionHeight };
+  const sectionHeight = tops[i + 1] - tops[i];
+  const progress = sectionHeight > 0 ? (target - tops[i]) / sectionHeight : 0;
+  if (progress >= SNAP_FILL) return { index: i + 1, sectionHeight };
+  if (progress <= 1 - SNAP_FILL) return { index: i, sectionHeight };
+  return null;
 }
 
 export function HomeScrollSnap() {
-  const currentIndexRef = useRef(0);
-
   useEffect(() => {
     let cancelled = false;
     let detach: (() => void) | undefined;
@@ -117,9 +104,9 @@ export function HomeScrollSnap() {
         if (sections.length < 2) return;
 
         const tops = getSnapSectionTops(sections);
-        const fromIndex = Math.min(currentIndexRef.current, tops.length - 1);
-        const { index, sectionHeight } = resolveSnapIndex(fromIndex, current, tops);
-        currentIndexRef.current = index;
+        const resolved = resolveSnapIndex(current, tops);
+        if (!resolved) return; // sitting between sections - leave it
+        const { index, sectionHeight } = resolved;
 
         const target = tops[index];
         const distance = Math.abs(target - current);

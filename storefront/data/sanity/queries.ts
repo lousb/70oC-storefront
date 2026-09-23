@@ -151,17 +151,6 @@ export const HOME_QUERY = defineQuery(`
   }
 `);
 
-// Just the 6 anchor sections' `sectionName` values, in the order editors
-// have them arranged in Studio's reorderable `sections` array (see
-// studio/src/schema-types/singletons/home.tsx) — a lighter fetch than
-// HOME_QUERY above for anything that only needs that order (e.g. the
-// product page's "Pressure 001"-style category index, which numbers a
-// product's category by its position in this list rather than a fixed
-// constant, so re-ordering the homepage in Studio re-numbers it too).
-export const HOME_SECTIONS_ORDER_QUERY = defineQuery(`
-  *[_type == 'home'][0].sections[].sectionName
-`);
-
 export const SHOP_QUERY = defineQuery(`
   *[_type == 'shop'][0]{
     _type,
@@ -232,6 +221,17 @@ export const ALL_PRODUCTS_QUERY = defineQuery(`
     "title": store.title,
     "slug": store.slug.current,
     category,
+    // Same within-category numbering as PRODUCT_QUERY's categoryPosition
+    // (oldest first), so cards and the product page show the same "001".
+    "categoryPosition": select(
+      defined(category) => count(*[
+        _type == "product" &&
+        category == ^.category &&
+        defined(store.slug.current) &&
+        store.isDeleted != true &&
+        _createdAt < ^._createdAt
+      ]) + 1
+    ),
     "price": store.priceRange.minVariantPrice,
     "imageUrl": coalesce(gallery[0].media.image.asset->url, store.previewImageUrl),
   }
@@ -253,6 +253,18 @@ export const PRODUCT_QUERY = defineQuery(`
     "defaultProductInformation": *[ _type == 'settings'][0].defaultProductInformation,
     productInformation,
     category,
+    // "Pressure 001": this product's 1-based position within its own
+    // category, oldest first (by creation date in Sanity, i.e. when it
+    // first synced from Shopify). Products deleted in Shopify don't count.
+    "categoryPosition": select(
+      defined(category) => count(*[
+        _type == "product" &&
+        category == ^.category &&
+        defined(store.slug.current) &&
+        store.isDeleted != true &&
+        _createdAt < ^._createdAt
+      ]) + 1
+    ),
     "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{
       "slug": store.slug.current,
       "title": store.title,

@@ -115,7 +115,7 @@ body {
      inverting to black. */
   background-color: var(--color-bg);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.0em;
 }
 .main-grid {
   display: grid;

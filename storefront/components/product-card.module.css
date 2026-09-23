@@ -22,27 +22,15 @@
   gap: 12px;
   margin-top: 10px;
   font-size: var(--font-size);
+  color: #000;
 }
 
+/* Plain inline text (not flex) so the spaces between title, category and
+   index are real text spacing, and the whole line truncates as one. */
 .captionLeft {
-  display: flex;
-  gap: 8px;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.index {
-  opacity: 0.4;
-}
-
-.category {
-  opacity: 0.4;
-}
-
-.title {
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 

@@ -58,6 +58,31 @@ export function ProductSection({
       // scrollHeight. BOTTOM_GAP keeps the last accordion row off the very
       // bottom edge when the panel is taller than the screen.
       const BOTTOM_GAP = 20;
+      // Must match .panelContent's desktop base padding-top in
+      // page.module.css (clearance for the site header text).
+      const HEADER_CLEARANCE = 100;
+
+      // When the panel fits on screen, push its visible content down so
+      // it's vertically centred in the viewport (never higher than the
+      // normal header clearance). Applied as extra .panelContent
+      // padding-top via --panel-center-offset, so the panel's own box,
+      // background and pin all behave exactly as before.
+      const getCenterOffset = () => {
+        const content = details.querySelector<HTMLElement>(
+          `.${s.panelContent}`,
+        );
+        if (!content) return 0;
+        const style = getComputedStyle(content);
+        const visibleHeight =
+          content.getBoundingClientRect().height -
+          parseFloat(style.paddingTop) -
+          parseFloat(style.paddingBottom);
+        return Math.max(
+          0,
+          Math.floor((window.innerHeight - visibleHeight) / 2 - HEADER_CLEARANCE),
+        );
+      };
+
       const getOverflow = () => {
         const content = details.querySelector(`.${s.panelContent}`);
         if (!content) return 0;
@@ -81,6 +106,13 @@ export function ProductSection({
       const stDetails = ScrollTrigger.create({
         trigger: section,
         start: () => {
+          // Centre first (changes the panel's height), then measure
+          // overflow against the result. A panel that needs centring
+          // always fits, so overflow is 0 in that case.
+          section.style.setProperty(
+            "--panel-center-offset",
+            `${getCenterOffset()}px`,
+          );
           const overflow = getOverflow();
           // Lets .reviewsOverlay (absolute inside the panel) offset
           // itself back to the viewport top while the panel is pinned
@@ -99,6 +131,8 @@ export function ProductSection({
       // docking at the same scroll position this pin releases at.
 
       return () => {
+        section.style.removeProperty("--panel-center-offset");
+        section.style.removeProperty("--panel-overflow");
         stDetails.kill();
       };
     });

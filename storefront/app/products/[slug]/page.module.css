@@ -219,7 +219,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 1em;
-  padding: 0.6em 0;
+  padding: 0.4em 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -601,6 +601,11 @@
    stays at 12px on desktop too - the one thing this deliberately excludes. */
 @media (min-width: 769px) {
   .panelContent {
+    /* 100px header clearance, plus whatever extra product-section.tsx
+       works out to vertically centre the panel on screen when it fits
+       (--panel-center-offset, set on .page; 0 when it doesn't fit).
+       Keep the 100px in sync with HEADER_CLEARANCE there. */
+    padding-top: calc(100px + var(--panel-center-offset, 0px));
     font-size: 14px;
   }
 }
@@ -644,7 +649,7 @@
    it there. ---- */
 .addToCartRow {
   width: 100%;
-  margin-top:1.2em;
+
 }
 
 @media (max-width: 768px) {
@@ -666,6 +671,23 @@
   display: flex;
   gap: 10px;
   margin-block: 1.2em;
+}
+/* Desktop copy sits above the accordion, mobile copy below it (see
+   renderIconRow in product-details-panel.tsx). */
+.iconRowMobile {
+  display: none;
+}
+@media (max-width: 768px) {
+  .iconRowDesktop {
+    display: none;
+  }
+  .iconRowMobile {
+    display: flex;
+    justify-content: space-between;
+    margin-block: 0;
+    padding-top: 40px;
+    padding-bottom: 20px;
+  }
 }
 .smallIcon {
   display: block;
@@ -735,6 +757,18 @@
 }
 
 @media (min-width: 769px) {
+  .addToCartRow {
+    margin-top:0;
+  }
+  .addToCart {
+    padding-top:56px;
+    padding-bottom:68px;
+    margin:0 !important;
+  }
+  .iconRowDesktop{
+    padding-bottom:56px;
+    margin:0 !important;
+  }
   .reviewsHeaderRow {
     display: grid;
     /* Matches .reviewRowHead's own compact columns below - the panel is

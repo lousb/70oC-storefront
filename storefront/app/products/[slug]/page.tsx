@@ -8,7 +8,6 @@ import { stegaClean } from "@sanity/client/stega";
 
 import {
   ALL_PRODUCT_PAGES_SLUGS,
-  HOME_SECTIONS_ORDER_QUERY,
   PRODUCT_METADATA_QUERY,
   PRODUCT_QUERY,
 } from "../../../data/sanity/queries";
@@ -38,11 +37,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   BLOOM: "Bloom",
 };
 
-// Same 6 values as CATEGORY_LABELS above, in this object's own insertion
-// order — used as the category-index fallback (see categoryIndex below)
-// on a not-yet-published/stale "home" document with no `sections` array
-// yet, same fallback app/page.tsx's own HOME_ANCHORS falls back to.
-const CATEGORY_FALLBACK_ORDER = Object.keys(CATEGORY_LABELS);
 
 export async function generateStaticParams() {
   const { data } = await sanityFetch({
@@ -78,17 +72,10 @@ export async function generateMetadata(
 export default async function Page(props: Props) {
   const params = await props.params;
 
-  const [{ tags, data: productPage }, { data: homeSectionsOrder }] =
-    await Promise.all([
-      sanityFetch({ query: PRODUCT_QUERY, params }),
-      // Only used to number this product's category label ("Pressure
-      // 001") by its position in the homepage's own section order - see
-      // categoryIndex below. stega: false since that index is derived
-      // (never rendered as its own editable field), and stega's invisible
-      // characters would otherwise break the array's === comparisons the
-      // same way they'd break cleanCategory below if left unclean.
-      sanityFetch({ query: HOME_SECTIONS_ORDER_QUERY, stega: false }),
-    ]);
+  const { tags, data: productPage } = await sanityFetch({
+    query: PRODUCT_QUERY,
+    params,
+  });
 
   const product = await getProduct({ handle: params.slug, tags });
 
@@ -150,28 +137,12 @@ export default async function Page(props: Props) {
   );
 
   // "Pressure 001"-style index next to the category label (see
-  // product-details-panel.tsx's .categoryLabel) - this product
-  // category's 1-based position in the homepage's own `sections` order
-  // (editors can reorder anchors in Studio - see app/page.tsx's own
-  // HOME_ANCHORS/home.sections handling), not a fixed per-category
-  // number, so re-ordering the homepage re-numbers every product too.
-  // Falls back to CATEGORY_FALLBACK_ORDER's fixed order on a
-  // not-yet-published "home" document with no sections yet, same as
-  // app/page.tsx's own HOME_ANCHORS fallback.
-  const sectionOrder =
-    homeSectionsOrder?.filter(
-      (name: string | null): name is string => !!name,
-    ).length
-      ? (homeSectionsOrder as string[])
-      : CATEGORY_FALLBACK_ORDER;
-  const categoryIndex = cleanCategory
-    ? (() => {
-        const position = sectionOrder.indexOf(cleanCategory);
-        return position === -1
-          ? null
-          : String(position + 1).padStart(3, "0");
-      })()
-    : null;
+  // product-details-panel.tsx's .categoryLabel): this product's position
+  // within its own category (oldest first), computed in PRODUCT_QUERY.
+  const categoryIndex =
+    cleanCategory && productPage?.categoryPosition
+      ? String(productPage.categoryPosition).padStart(3, "0")
+      : null;
 
   // "Details" is a flexible, possibly-multi-entry section: per-product
   // productInformation, optionally complemented by the site-wide defaults

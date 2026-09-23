@@ -57,7 +57,7 @@ export function ProductGrid({ products }: { products: ListedProduct[] }) {
             onClick={() => setAnchorOpen((v) => !v)}
             aria-expanded={anchorOpen}
           >
-            {anchor ?? "All Anchors"} +
+            <span className={s.underlined}>{anchor ?? "All Anchors"}</span> +
           </button>
           {anchorOpen && (
             <div className={s.dropdown}>
@@ -91,7 +91,9 @@ export function ProductGrid({ products }: { products: ListedProduct[] }) {
         </div>
 
         <div className={s.viewGroup} aria-label="Grid density">
-          <span aria-hidden="true">View</span>
+          <span aria-hidden="true" className={s.underlined}>
+            View
+          </span>
           {VIEW_OPTIONS.map((v) => (
             <button
               key={v}
@@ -110,7 +112,7 @@ export function ProductGrid({ products }: { products: ListedProduct[] }) {
           className={`${s.barTrigger} ${s.plusTrigger}`}
           onClick={() => setAnchor(null)}
         >
-          <span>All Products</span>
+          <span className={s.underlined}>All Products</span>
           <span aria-hidden="true">+</span>
         </button>
       </div>

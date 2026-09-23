@@ -44,6 +44,40 @@ export function ProductDetailsPanel({
 }) {
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
+  // This product's own category icon (100%), then up to 3 related
+  // products (Sanity "Related Products" field) as their category icons at
+  // 25%, each linking to that product. Rendered twice: above the
+  // accordion on desktop, below it on mobile (each copy hidden on the
+  // other breakpoint via CSS, same pattern as .mobileCartBar).
+  const hasIcons = !!categoryIconSlug || relatedProducts.length > 0;
+  const renderIconRow = (placementClass: string) => (
+    <div className={`${s.iconRow} ${placementClass}`}>
+      {categoryIconSlug && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/icons/categories/${categoryIconSlug}.svg`}
+          alt=""
+          aria-hidden="true"
+          className={s.smallIcon}
+        />
+      )}
+      {relatedProducts.map((related) => (
+        <Link
+          key={related.slug}
+          href={`/products/${related.slug}`}
+          className={s.relatedIconLink}
+          aria-label={related.title ?? related.slug}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/icons/categories/${related.iconSlug}.svg`}
+            alt=""
+            className={s.smallIcon}
+          />
+        </Link>
+      ))}
+    </div>
+  );
 
   // Desktop: the rating link covers the whole panel with the reviews
   // table (see .reviewsOverlay below). Mobile: the panel never overlays —
@@ -62,7 +96,11 @@ export function ProductDetailsPanel({
 
   return (
     <>
-      <div className={s.panelBackground} data-reviews-open={reviewsOpen} aria-hidden="true" />
+      <div
+        className={s.panelBackground}
+        data-reviews-open={reviewsOpen}
+        aria-hidden="true"
+      />
 
       <div className={s.panelContent}>
         <div className={s.descriptionTop}>
@@ -102,7 +140,9 @@ export function ProductDetailsPanel({
           {descriptionNode}
         </div>
 
-        <div className={s.addToCartRow}><AddToCart product={product} /></div>
+        <div className={s.addToCartRow}>
+          <AddToCart product={product} />
+        </div>
 
         {/* Mobile-only Add to Cart + Price bar. Sits right where
             .addToCartRow is (that row is desktop-only, hidden on mobile -
@@ -122,39 +162,11 @@ export function ProductDetailsPanel({
           </p>
         </div>
 
-        {/* This product's own category icon (100%), then up to 3 related
-            products (Sanity "Related Products" field) as their category
-            icons at 25%, each linking to that product. */}
-        {(categoryIconSlug || relatedProducts.length > 0) && (
-          <div className={s.iconRow}>
-            {categoryIconSlug && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`/icons/categories/${categoryIconSlug}.svg`}
-                alt=""
-                aria-hidden="true"
-                className={s.smallIcon}
-              />
-            )}
-            {relatedProducts.map((related) => (
-              <Link
-                key={related.slug}
-                href={`/products/${related.slug}`}
-                className={s.relatedIconLink}
-                aria-label={related.title ?? related.slug}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/icons/categories/${related.iconSlug}.svg`}
-                  alt=""
-                  className={s.smallIcon}
-                />
-              </Link>
-            ))}
-          </div>
-        )}
+        {hasIcons && renderIconRow(s.iconRowDesktop)}
 
         <Accordion items={accordionItems} />
+
+        {hasIcons && renderIconRow(s.iconRowMobile)}
       </div>
 
       {/* Desktop: covers the whole panel above (title/description/add to

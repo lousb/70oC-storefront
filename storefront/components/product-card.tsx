@@ -38,10 +38,13 @@ export function ProductCard({ product }: { product: ListedProduct }) {
         )}
       </div>
       <div className={s.caption}>
+        {/* "Title  Category 001": two non-breaking spaces between the
+            title and the anchor, one between category and index. */}
         <div className={s.captionLeft}>
-          <span className={s.index}>{product.index}</span>
-          <span className={s.category}>{product.category}</span>
           <span className={s.title}>{product.title}</span>
+          {"\u00a0\u00a0"}
+          <span className={s.category}>{product.category}</span>{" "}
+          <span className={s.index}>{product.index}</span>
         </div>
         {product.price != null && (
           <span className={s.price}>

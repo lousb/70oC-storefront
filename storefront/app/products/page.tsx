@@ -31,7 +31,11 @@ export default async function Page() {
   const products: ListedProduct[] = data.map((product, i) => ({
     id: product._id,
     slug: product.slug ?? "",
-    index: String(i + 1).padStart(3, "0"),
+    // Position within its own category (see ALL_PRODUCTS_QUERY), matching
+    // the product page's "Pressure 001".
+    index: product.categoryPosition
+      ? String(product.categoryPosition).padStart(3, "0")
+      : "",
     category: product.category ? CATEGORY_LABELS[product.category] ?? product.category : "Uncategorised",
     title: product.title ?? "Untitled",
     price: product.price,
