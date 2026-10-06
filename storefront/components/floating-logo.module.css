@@ -100,6 +100,17 @@
   right: 20px;
 }
 
+/* Product page (mobile only): the fixed Add to Cart bar is present, so
+   lift "0"/"OC" to sit 10px above it. Bar height = text height + 20px
+   padding top and bottom + safe-area inset. Desktop overrides below
+   reset bottom to auto, so this never leaks past 768px. */
+@media (max-width: 768px) {
+  :global(body:has([data-mobile-cart-bar])) .zero,
+  :global(body:has([data-mobile-cart-bar])) .oc {
+    bottom: calc(var(--mobile-cart-btn-h) + 40px + 10px + env(safe-area-inset-bottom));
+  }
+}
+
 @media (min-width: 769px) {
   /* "0" centered in column 6, "OC" centered in column 13, both
      pinned 20px from the bottom of the viewport. */

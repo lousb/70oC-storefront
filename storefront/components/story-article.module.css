@@ -1,0 +1,381 @@
+/*
+  Individual Story page - built against
+  Set-Up-Components/Individual Stories (desktop 1920 artboard, mobile 360).
+
+  Grid: the site's universal grid tokens (globals.css)
+    desktop 18 cols / 20px margin / 10px gutter
+    mobile   8 cols / 20px margin /  5px gutter
+  <main> already supplies the 20px margin, so .grid only sets tracks.
+
+  Type (measured from the PDFs):
+    body     desktop 16/21  · mobile 12/16 (sans, --font-size)
+    small    12/16 (credits, desktop margin notes)
+    serif L  desktop 24/28  · mobile 20/23 (intro + pull quotes)
+    title    desktop 40/46  · mobile 32/37 (serif)
+*/
+
+.story {
+  --story-serif: "Times New Roman", Times, serif;
+  --story-body-lh: 16px;
+  --story-gap-text: 30px;
+  --story-gap-first: 48px;
+  --story-gap-media: 36px;
+  padding-bottom: 60px;
+  color: var(--color-text);
+}
+
+@media (min-width: 769px) {
+  .story {
+    --story-body-lh: 21px;
+    --story-gap-text: 30px;
+    --story-gap-first: 30px;
+    --story-gap-media: 114px;
+    padding-bottom: 120px;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- Hero */
+
+/* Mobile: image margin to margin at its own aspect ratio, 129px down. */
+.hero {
+  position: relative;
+  padding-top: 129px;
+  text-align: center;
+}
+
+.heroMedia {
+  width: 100%;
+}
+
+.title {
+  margin: 14px 0 0;
+  font-family: var(--story-serif);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 37px;
+  letter-spacing: 0;
+}
+
+.category {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.credits {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Desktop thumbnail strip (hero image + every story image), left edge,
+   vertically centred on the first screen. Mobile has none. */
+.thumbs {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  /* Desktop: the hero fills exactly the first screen. Image is
+     height-locked (694px tall on the 1100px artboard = 100svh - 406px),
+     width follows its own aspect ratio, centred. */
+  .hero {
+    height: 100svh;
+    min-height: 600px;
+    padding-top: 140px;
+    box-sizing: border-box;
+  }
+
+  .heroMedia {
+    display: flex;
+    justify-content: center;
+    height: calc(100svh - 406px);
+    min-height: 194px;
+  }
+
+  .heroMedia img {
+    width: auto !important;
+    height: 100% !important;
+  }
+
+  .heroMedia > div {
+    height: 100%;
+  }
+
+  .title {
+    margin-top: 32px;
+    font-size: 40px;
+    line-height: 46px;
+  }
+
+  .category {
+    margin-top: 5px;
+  }
+
+  .thumbs {
+    display: flex;
+    gap: 2px;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .thumb {
+    display: block;
+    width: 60px;
+    height: 80px;
+    overflow: hidden;
+  }
+
+  .thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+  }
+}
+
+/* ---------------------------------------------------------------- Intro + pull quote */
+
+.intro,
+.pullQuote {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--story-serif);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 23px;
+  letter-spacing: 0;
+}
+
+.introWrap {
+  margin-top: 105px;
+}
+
+@media (min-width: 769px) {
+  .intro,
+  .pullQuote {
+    grid-column: 6 / 14;
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .introWrap {
+    margin-top: 10px;
+  }
+}
+
+/* ---------------------------------------------------------------- Block rhythm */
+
+.gapText {
+  margin-top: var(--story-gap-text);
+}
+.gapFirst {
+  margin-top: var(--story-gap-first);
+}
+.gapMedia {
+  margin-top: var(--story-gap-media);
+}
+/* A block that follows media also needs the media gap above it - handled
+   by .gapMedia on that block (see blog-page-builder.tsx). */
+
+/* ---------------------------------------------------------------- Q&A */
+
+.qa {
+  /* Containing block for the desktop margin notes (.sidenote). */
+  position: relative;
+  row-gap: 12px;
+  font-size: var(--font-size);
+  line-height: var(--story-body-lh);
+}
+
+.qa p {
+  margin: 0;
+}
+
+.asker,
+.answerer {
+  grid-column: 1 / 3;
+  font-family: var(--story-serif);
+}
+
+.asker,
+.question {
+  grid-row: 1;
+}
+
+.question {
+  grid-column: 3 / -1;
+  white-space: pre-line;
+}
+
+.answerer,
+.answer {
+  grid-row: 2;
+}
+
+.answer {
+  grid-column: 3 / -1;
+}
+
+.qaContinued .answer {
+  grid-row: 1;
+}
+
+/* First paragraph flush, every following paragraph indented one
+   column (mobile: column + gutter, measured 41px; desktop: one column,
+   measured 95px). Percentages resolve against the 6-col answer cell. */
+.para + .para,
+.qaContinued .para:first-child {
+  text-indent: calc((100% - 5 * var(--grid-gutter)) / 6 + var(--grid-gutter));
+}
+
+.fnRef {
+  font-size: 0.6em;
+  line-height: 0;
+  vertical-align: super;
+  text-indent: 0;
+}
+
+/* Desktop margin notes - hidden on mobile (list under the answer instead). */
+.sidenote {
+  display: none;
+}
+
+.notesList {
+  grid-column: 3 / -1;
+  grid-row: 3;
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.noteItem {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+}
+
+.noteIndex {
+  grid-column: 1;
+}
+
+.noteText {
+  grid-column: 2 / -1;
+}
+
+@media (min-width: 769px) {
+  .qa {
+    row-gap: 30px;
+  }
+
+  .asker {
+    grid-column: 6 / 7;
+  }
+
+  .question {
+    grid-column: 7 / 14;
+  }
+
+  .answerer {
+    grid-column: 7 / 8;
+  }
+
+  .answer {
+    grid-column: 8 / 14;
+  }
+
+  .para + .para,
+  .qaContinued .para:first-child {
+    text-indent: calc((100% - 5 * var(--grid-gutter)) / 6);
+  }
+
+  .notesList {
+    display: none;
+  }
+
+  /* Absolutely positioned with only `left` set: top stays at its static
+     position, i.e. level with the line holding the "(n)" marker.
+     Left/width resolve against .qa (the full 18-col grid): cols 15-18. */
+  .sidenote {
+    display: inline;
+    position: absolute;
+    left: calc((100% + var(--grid-gutter)) / 18 * 14);
+    width: calc((100% + var(--grid-gutter)) / 18 * 4 - var(--grid-gutter));
+    text-indent: 0;
+    font-size: 12px;
+    line-height: 16px;
+    padding-top: 3px;
+  }
+
+  .sidenoteInner {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: var(--grid-gutter);
+  }
+
+  .fnIndex {
+    grid-column: 1;
+  }
+
+  .fnText {
+    grid-column: 2 / -1;
+  }
+}
+
+/* ---------------------------------------------------------------- Media */
+
+.body figure {
+  margin-inline: 0;
+  margin-bottom: 0;
+}
+
+.mediaBleed {
+  margin-inline: calc(-1 * var(--grid-margin)) !important;
+}
+
+.mediaCentered {
+  grid-column: 1 / -1;
+}
+
+.mediaDouble {
+  row-gap: 10px;
+  align-items: start;
+}
+
+.mediaDoubleA,
+.mediaDoubleB {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 769px) {
+  .mediaCentered {
+    grid-column: 6 / 14;
+  }
+
+  .mediaDoubleCentered .mediaDoubleA {
+    grid-column: 6 / 10;
+  }
+  .mediaDoubleCentered .mediaDoubleB {
+    grid-column: 10 / 14;
+  }
+
+  .mediaDoubleFull .mediaDoubleA {
+    grid-column: 1 / 10;
+  }
+  .mediaDoubleFull .mediaDoubleB {
+    grid-column: 10 / 19;
+  }
+}
+
+/* The block after a media block (and the media block itself) carries
+   the big gap; the last block before the footer gets page padding. */

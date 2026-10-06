@@ -20,10 +20,43 @@ export const post = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "authors",
+      name: "credits",
       title: "Author(s)",
+      description:
+        'Shown under the title as "Words: Name, Photos: Name". Add one row per credit.',
+      type: "array",
+      of: [
+        {
+          type: "object",
+          name: "credit",
+          fields: [
+            defineField({
+              name: "role",
+              title: "Role",
+              description: "e.g. Words, Photos, Interview",
+              type: "string",
+            }),
+            defineField({
+              name: "name",
+              title: "Name",
+              type: "string",
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: { title: "name", subtitle: "role" },
+          },
+        },
+      ],
+    }),
+    // Legacy plain-string authors (pre credits rows). Hidden from
+    // editors; the storefront only falls back to it when Credits is empty.
+    defineField({
+      name: "authors",
+      title: "Authors (legacy)",
       type: "array",
       of: [{ type: "string" }],
+      hidden: true,
     }),
     defineField({
       name: "date",
@@ -49,18 +82,24 @@ export const post = defineType({
     }),
     defineField({
       name: "excerpt",
-      title: "Excerpt",
+      title: "Introduction",
+      description:
+        "Large serif standfirst under the hero. Also used as the excerpt on story cards.",
       type: "text",
-      rows: 3,
+      rows: 4,
     }),
     defineField({
       name: "cover",
-      title: "Cover",
+      title: "Hero Image",
+      description:
+        "Top of the story and story cards. Keeps its own aspect ratio (desktop: height-locked to the first screen).",
       type: "media",
     }),
     defineField({
       name: "pageBuilder",
-      title: "Page Builder",
+      title: "Story Body",
+      description:
+        "Stack Question, Header / Pull Quote and Media blocks in reading order.",
       type: "array",
       of: [
         { type: "storyMediaBlock" },

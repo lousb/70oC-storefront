@@ -961,14 +961,25 @@
 }
 
 @media (max-width: 768px) {
+  /* Fixed to the bottom of the viewport, 20px padding all round (plus
+     the iOS home-indicator inset). Pill height is locked to
+     --mobile-cart-btn-h (styles/globals.css) so the floating logo can
+     sit exactly 10px above the bar - see floating-logo.module.css. */
   .mobileCartBar {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 5px;
-    margin-top: 20px;
-    width: 100%;
-    padding: 0;
-    background: transparent;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 700; /* under the Menu/Cart panels (800) and logo (860) */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    background: #000;
+    color: #fff;
   }
 
   /* The <form> from app/_cart/add-to-cart.tsx has no className of its
@@ -989,10 +1000,12 @@
      padding, instead of sitting flush against it. */
   .mobileCartBar .addToCart {
     width: 100%;
+    height: var(--mobile-cart-btn-h);
     justify-content: flex-start;
-    padding: 0.6em 16px;
+    padding: 0;
     margin-block: 0;
-    background: #F2F2F2;
+    background: none;
+    color: inherit;
   }
 
   /* No fixed width — sized to its own text, so it naturally grows/shrinks
@@ -1000,10 +1013,13 @@
      grows/shrinks to match via flex. */
   .mobileCartPrice {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
     margin: 0;
-        padding: 0.5em 16px;
+    justify-content: flex-end;
+    padding: 0;
     white-space: nowrap;
-    background: #F2F2F2;
-    height: 100%;
+    background: none;
+    height: var(--mobile-cart-btn-h);
   }
 }

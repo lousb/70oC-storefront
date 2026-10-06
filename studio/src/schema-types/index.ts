@@ -14,6 +14,8 @@ import { newsletter } from "./objects/editorial/newsletter";
 import { picture } from "./objects/editorial/picture";
 import { productBlock } from "./objects/editorial/product-block";
 import { productInformation } from "./objects/editorial/product-information";
+import { storyAnswerContent } from "./objects/editorial/story-answer-content";
+import { storyFootnote } from "./objects/editorial/story-footnote";
 import { storyHeaderBlock } from "./objects/editorial/story-header-block";
 import { storyMediaBlock } from "./objects/editorial/story-media-block";
 import { storyQuestionBlock } from "./objects/editorial/story-question-block";
@@ -65,6 +67,8 @@ export const schemaTypes = [
   picture,
   productBlock,
   productInformation,
+  storyAnswerContent,
+  storyFootnote,
   storyHeaderBlock,
   storyMediaBlock,
   storyQuestionBlock,

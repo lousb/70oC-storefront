@@ -1,5 +1,12 @@
 import { defineField, defineType } from "sanity";
 
+// Media block - images always keep their own (native) aspect ratio, the
+// width is what's locked to the grid:
+//   Single + Centered   desktop cols 6-13 · mobile margin to margin
+//   Single + Full Width edge to edge (100vw) on every breakpoint
+//   Double + Centered   desktop cols 6-9 / 10-13 · mobile stacked
+//   Double + Full Width desktop cols 1-9 / 10-18 · mobile stacked
+
 export const storyMediaBlock = defineType({
   name: "storyMediaBlock",
   title: "Media Block",
@@ -43,12 +50,6 @@ export const storyMediaBlock = defineType({
       description: "Shown alongside Media when Layout is set to Double.",
       type: "media",
       hidden: ({ parent }) => parent?.layout !== "double",
-    }),
-    defineField({
-      name: "caption",
-      title: "Fig Description",
-      description: "Caption shown under the figure number (e.g. \"Fig. 1\").",
-      type: "string",
     }),
   ],
   preview: {

@@ -334,6 +334,7 @@ const storyPageBuilderFields = /* groq */ `
       "hotspot": media.image.hotspot,
       "alt": media.image.alt,
       "lqip": media.image.asset->metadata.lqip,
+      "dimensions": media.image.asset->metadata.dimensions,
     }),
     "video": select(media.mediaType == "video" => {
       "playbackId": media.video.asset->playbackId,
@@ -342,7 +343,6 @@ const storyPageBuilderFields = /* groq */ `
   }),
   "layout": select(_type == "storyMediaBlock" => layout),
   "width": select(_type == "storyMediaBlock" => width),
-  "caption": select(_type == "storyMediaBlock" => caption),
   "secondMedia": select(_type == "storyMediaBlock" => {
     "mediaType": secondMedia.mediaType,
     "image": select(secondMedia.mediaType == "image" => {
@@ -352,6 +352,7 @@ const storyPageBuilderFields = /* groq */ `
       "hotspot": secondMedia.image.hotspot,
       "alt": secondMedia.image.alt,
       "lqip": secondMedia.image.asset->metadata.lqip,
+      "dimensions": secondMedia.image.asset->metadata.dimensions,
     }),
     "video": select(secondMedia.mediaType == "video" => {
       "playbackId": secondMedia.video.asset->playbackId,
@@ -361,6 +362,8 @@ const storyPageBuilderFields = /* groq */ `
   // storyHeaderBlock
   "text": select(_type == "storyHeaderBlock" => text),
   // storyQuestionBlock
+  "continuation": select(_type == "storyQuestionBlock" => continuation),
+  "asker": select(_type == "storyQuestionBlock" => asker),
   "question": select(_type == "storyQuestionBlock" => question),
   "answerer": select(_type == "storyQuestionBlock" => answerer),
   "answer": select(_type == "storyQuestionBlock" => answer),
@@ -411,6 +414,7 @@ export const POST_QUERY = defineQuery(`
     title,
     "slug": slug.current,
     authors,
+    credits[]{role, name},
     date,
     readDuration,
     category,
@@ -424,6 +428,7 @@ export const POST_QUERY = defineQuery(`
         "hotspot": cover.image.hotspot,
         "alt": cover.image.alt,
         "lqip": cover.image.asset->metadata.lqip,
+        "dimensions": cover.image.asset->metadata.dimensions,
       }),
       "video": select(cover.mediaType == "video" => {
         "playbackId": cover.video.asset->playbackId,

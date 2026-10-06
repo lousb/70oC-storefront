@@ -1,14 +1,17 @@
-type StoryHeaderBlockProps = {
-  block: {
-    text?: string;
-  };
-};
+import s from "./story-article.module.css";
 
-export function StoryHeaderBlock({ block }: StoryHeaderBlockProps) {
+// Header / Pull Quote - large serif across the text column.
+export function StoryHeaderBlock({
+  block,
+  className = "",
+}: {
+  block: { text?: string };
+  className?: string;
+}) {
   if (!block.text) return null;
   return (
-    <h2 className="story-header-block" style={{ maxWidth: "65ch", margin: "0 auto" }}>
-      {block.text}
-    </h2>
+    <div className={`${s.grid} ${className}`}>
+      <h2 className={s.pullQuote}>{block.text}</h2>
+    </div>
   );
 }

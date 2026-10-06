@@ -253,3 +253,18 @@ mux-player {
 .total-checkout{
   padding-top:2rem;
 }
+
+/* Mobile product page: fixed Add to Cart bar (see
+   app/products/[slug]/page.module.css .mobileCartBar). Pill height is
+   shared with floating-logo.module.css so the logo can sit 10px above. */
+:root {
+  --mobile-cart-btn-h: 16px; /* one line of text */
+}
+
+@media (max-width: 768px) {
+  /* Room at the end of the page so the fixed bar never covers the
+     last bit of the footer. */
+  body:has([data-mobile-cart-bar]) {
+    padding-bottom: calc(var(--mobile-cart-btn-h) + 40px + env(safe-area-inset-bottom));
+  }
+}

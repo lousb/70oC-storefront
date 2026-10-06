@@ -1,68 +1,55 @@
-import { MediaItem } from "./media-item";
-
-type Media = {
-  mediaType: "image" | "video";
-  image?: any;
-  video?: { playbackId: string; aspectRatio?: string };
-};
+import { StoryMedia, type StoryMediaValue } from "./story-media";
+import s from "./story-article.module.css";
 
 type StoryMediaBlockProps = {
   block: {
-    media?: Media;
-    secondMedia?: Media;
+    media?: StoryMediaValue;
+    secondMedia?: StoryMediaValue;
     layout?: "single" | "double";
     width?: "centered" | "fullWidth";
-    caption?: string;
   };
-  figureIndex?: number;
+  // Anchor ids for the desktop hero thumbnail strip (see page.tsx).
+  anchorIds?: [string, string?];
+  className?: string;
 };
 
-export function StoryMediaBlock({ block, figureIndex }: StoryMediaBlockProps) {
+// Layouts (see studio story-media-block.tsx for the full table):
+//   single/centered  desktop cols 6-13, mobile margin to margin
+//   single/full      edge to edge (100vw), every breakpoint
+//   double/centered  desktop cols 6-9 + 10-13, mobile stacked
+//   double/full      desktop cols 1-9 + 10-18, mobile stacked
+export function StoryMediaBlock({ block, anchorIds, className = "" }: StoryMediaBlockProps) {
   if (!block.media) return null;
-  const isDouble = block.layout === "double" && block.secondMedia;
-  const isFullWidth = block.width === "fullWidth";
+  const isDouble = block.layout === "double" && !!block.secondMedia;
+  const isFull = block.width === "fullWidth";
 
-  return (
-    <figure
-      className="story-media-block"
-      style={{
-        width: isFullWidth ? "100%" : "min(100%, 65ch)",
-        margin: isFullWidth ? "0" : "0 auto",
-      }}
-    >
-      <div
-        style={{
-          display: isDouble ? "grid" : undefined,
-          gridTemplateColumns: isDouble ? "repeat(2, 1fr)" : undefined,
-          gap: isDouble ? "1rem" : undefined,
-        }}
-      >
-        <div style={{ position: "relative", width: "100%", aspectRatio: isFullWidth ? "16/9" : "4/5" }}>
-          <MediaItem
-            mediaType={block.media.mediaType}
-            image={block.media.image}
-            video={block.media.video}
-            sizes={isFullWidth ? "100vw" : "65ch"}
-          />
+  if (!isDouble && isFull) {
+    return (
+      <figure id={anchorIds?.[0]} className={`${s.mediaBleed} ${className}`}>
+        <StoryMedia media={block.media} sizes="100vw" />
+      </figure>
+    );
+  }
+
+  if (!isDouble) {
+    return (
+      <figure className={`${s.grid} ${className}`}>
+        <div id={anchorIds?.[0]} className={s.mediaCentered}>
+          <StoryMedia media={block.media} sizes="(max-width: 768px) 100vw, 45vw" />
         </div>
-        {isDouble && (
-          <div style={{ position: "relative", width: "100%", aspectRatio: isFullWidth ? "16/9" : "4/5" }}>
-            <MediaItem
-              mediaType={block.secondMedia!.mediaType}
-              image={block.secondMedia!.image}
-              video={block.secondMedia!.video}
-              sizes={isFullWidth ? "100vw" : "65ch"}
-            />
-          </div>
-        )}
+      </figure>
+    );
+  }
+
+  const half = isFull ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 23vw";
+  return (
+    <figure className={`${s.grid} ${s.mediaDouble} ${isFull ? s.mediaDoubleFull : s.mediaDoubleCentered} ${className}`}>
+      <div id={anchorIds?.[0]} className={s.mediaDoubleA}>
+        <StoryMedia media={block.media} sizes={half} />
       </div>
-      {(figureIndex || block.caption) && (
-        <figcaption style={{ fontSize: "0.75rem", opacity: 0.5, marginTop: "0.5rem" }}>
-          {figureIndex && <span>Fig. {figureIndex}</span>}
-          {figureIndex && block.caption && <span> — </span>}
-          {block.caption}
-        </figcaption>
-      )}
+      <div id={anchorIds?.[1]} className={s.mediaDoubleB}>
+        <StoryMedia media={block.secondMedia!} sizes={half} />
+      </div>
     </figure>
   );
 }

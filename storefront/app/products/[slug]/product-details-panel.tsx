@@ -146,16 +146,17 @@ export function ProductDetailsPanel({
 
         {/* Mobile-only Add to Cart + Price bar. Sits right where
             .addToCartRow is (that row is desktop-only, hidden on mobile -
-            see page.module.css). Plain normal-flow content, no
-            sticky/pin/dock behavior - a pinned version was tried and
-            pulled back out at the user's request, so this is just the
-            page's own Add to Cart, styled for mobile. A second,
+            see page.module.css). Fixed to the bottom of the viewport on
+            mobile (10px padding all round). data-mobile-cart-bar is a
+            plain global hook so floating-logo.module.css and globals.css
+            can detect this page via body:has() and lift the "0"/"OC"
+            logo 10px above the bar. A second,
             independent <AddToCart> instance - takes `product` (a plain
             serializable object) rather than a pre-built element/function
             prop, since Page is a server component and can't hand a
             function across that boundary, and reusing one element in two
             places trips React's "each child needs a unique key" check. */}
-        <div className={s.mobileCartBar}>
+        <div className={s.mobileCartBar} data-mobile-cart-bar>
           <AddToCart product={product} />
           <p className={s.mobileCartPrice}>
             <Price amount={priceAmount} currencyCode={priceCurrencyCode} />
