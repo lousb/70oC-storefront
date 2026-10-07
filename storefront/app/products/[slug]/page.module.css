@@ -499,6 +499,27 @@
   right: 0;
   bottom: calc(50vh - var(--icon-size) / 2);
   pointer-events: none;
+  /* Above .productDetails: that panel now has a solid white background
+     on desktop (needed for the title's own blend - see .panelBackground)
+     and, while GSAP pins it (position: fixed = its own stacking
+     context), it was painting that white OVER the icon, hiding it on the
+     left half entirely. z-index here only lifts the track within .page;
+     the sticky box's mix-blend-mode still blends with everything under
+     it (panel + gallery), and the sticky/pin mechanics are untouched. */
+  z-index: 1;
+  /* z-index makes this track its own stacking context, so the blend has
+     to live HERE (on the context root) rather than on the sticky box
+     inside it - a blend inside the track would only see the track's own
+     transparent contents and do nothing. The track is transparent apart
+     from the icon, so blending the whole layer is the same thing. */
+  mix-blend-mode: difference;
+  transition: opacity 0.3s ease;
+}
+
+/* Reviews slide-out open: the icon used to sit under it - now that the
+   icon is above the panel, step it out of the way instead. */
+.page:has(.reviewsOverlay[data-state="open"]) .floatingIconTrack {
+  opacity: 0;
 }
 
 .floatingIconBox {
@@ -514,9 +535,9 @@
   width: var(--icon-size);
   aspect-ratio: 1;
   pointer-events: none;
-  /* Blend on this outer layer, never on the filtered/rotating img
-     (cross-browser blend trap, see components/floating-logo.module.css). */
-  mix-blend-mode: difference;
+  /* No blend here - it's on .floatingIconTrack (see there). Never on the
+     filtered/rotating img either (cross-browser blend trap, see
+     components/floating-logo.module.css). */
 }
 
 .floatingIcon {
