@@ -11,6 +11,11 @@ export type ListedProduct = {
   title: string;
   price: number | null;
   imageUrl?: string | null;
+  // Hover state: the product's anchor's Home section Image 1, with that
+  // anchor's slim line-art icon (public/icons/02Icons/<slug>.png, same as
+  // the Home and product pages) on top, inverted to white.
+  hoverImageUrl?: string | null;
+  iconSlug?: string | null;
   // Fallback tonal color, used only when the product has no gallery image
   // yet in Studio and no Shopify featured image either — same palette the
   // Home/Stories placeholders use, so an incomplete product still looks
@@ -36,15 +41,39 @@ export function ProductCard({ product }: { product: ListedProduct }) {
             style={{ backgroundColor: product.color }}
           />
         )}
+        {product.hoverImageUrl && (
+          <div className={s.hover} aria-hidden="true">
+            <NextImage
+              src={product.hoverImageUrl}
+              fill
+              alt=""
+              style={{ objectFit: "cover" }}
+              sizes="(min-width: 768px) 25vw, 50vw"
+            />
+            {product.iconSlug && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/icons/02Icons/${product.iconSlug}.png`}
+                alt=""
+                className={s.hoverIcon}
+              />
+            )}
+          </div>
+        )}
       </div>
       <div className={s.caption}>
-        {/* "Title  Category 001": two non-breaking spaces between the
-            title and the anchor, one between category and index. */}
+        {/* "001  Category  Title": index, anchor, then title - the same
+            two non-breaking spaces as the gap between each. */}
         <div className={s.captionLeft}>
-          <span className={s.title}>{product.title}</span>
+          {product.index && (
+            <>
+              <span className={s.index}>{product.index}</span>
+              {"\u00a0\u00a0"}
+            </>
+          )}
+          <span className={s.category}>{product.category}</span>
           {"\u00a0\u00a0"}
-          <span className={s.category}>{product.category}</span>{" "}
-          <span className={s.index}>{product.index}</span>
+          <span className={s.title}>{product.title}</span>
         </div>
         {product.price != null && (
           <span className={s.price}>

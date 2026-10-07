@@ -204,6 +204,18 @@
   opacity: 0.5;
 }
 
+/* Hover underline - draws in left to right under the label. */
+.addToCartLabel {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% /
+    0% 1px;
+  transition: background-size 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@media (hover: hover) {
+  .addToCart:not(:disabled):hover .addToCartLabel {
+    background-size: 100% 1px;
+  }
+}
+
 /* Details / Ingredients / How To Use / Shipping / Where We Live */
 .accordion {
   margin-top: 0.5em;
@@ -226,6 +238,21 @@
   font: inherit;
   text-align: left;
   color: inherit;
+}
+
+/* Height animation - rows open downward. grid-template-rows 0fr -> 1fr
+   animates to the content's natural height with no JS measuring. */
+.accordionPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.accordionPanel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.accordionPanelInner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .accordionContent {
@@ -540,7 +567,9 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 50vw;
+  /* .productDetails starts 20px in (the grid margin), so 50vw from there
+     would run 20px past the split - stop exactly at the halfway line. */
+  width: calc(50vw - var(--grid-margin));
   background-color: transparent;
   transition: background-color 0.4s ease;
   pointer-events: none;
@@ -562,8 +591,47 @@
    overlay's right edge whenever reviews were open. .reviewsOverlay is a
    later sibling of .panelContent in the DOM (only rendered while open),
    so :has() targets exactly that state. */
-.panelContent:has(~ .reviewsOverlay) {
+/* Everything in the panel except the title row and rating line, which
+   stay visible on top of the overlay (see below). */
+.panelContent:has(~ .reviewsOverlay[data-state="open"]) > :not(.descriptionTop),
+.panelContent:has(~ .reviewsOverlay[data-state="open"]) .descriptionTop > :not(.headerRow, .ratingLink) {
   visibility: hidden;
+  /* Wait for the overlay to finish sliding in before hiding what's
+     under it; reappears instantly when it starts sliding back out. */
+  transition: visibility 0s linear 0.45s;
+}
+
+/* Desktop: the IPP's own title / price / rating sit above the reviews
+   overlay (z-index 20) as white text with mix-blend-mode: difference -
+   same trick as the site header - so they read black on the white page
+   and invert to white live as the black overlay slides in under them. */
+@media (min-width: 769px) {
+  /* Solid white on desktop (not transparent): .productDetails is its own
+     stacking context (z-index: 0), so the title/price/rating's
+     mix-blend-mode: difference blends against what's painted INSIDE it -
+     with nothing here the white text had no backdrop and vanished on the
+     white page. Desktop only: on mobile this layer spans the whole panel
+     (width: 100%) and was painting white over the black #reviews
+     section at the bottom of it. */
+  .panelBackground {
+    background-color: #fff;
+  }
+
+  /* .productDetails prefix: outranks .ratingLink's own later
+     `color: inherit`, which was leaving it black (= invisible once
+     blended on white). */
+  .productDetails .headerRow,
+  .productDetails .ratingLink {
+    position: relative;
+    z-index: 30;
+    mix-blend-mode: difference;
+    color: #fff;
+  }
+
+  .headerRow .categoryLabel,
+  .headerRow .priceTop {
+    color: inherit;
+  }
 }
 
 @media (max-width: 768px) {
@@ -827,9 +895,8 @@
   object-fit: contain;
   margin-right: 6px;
   vertical-align: middle;
-  /* Same trick as .floatingIcon — near-black line art inverted so it
-     reads white against this panel's black background. */
-  filter: invert(1);
+  /* Thick white line-art SVGs (public/icons/categories/) - already white,
+     so no invert against the black reviews background. */
 }
 
 .reviewName {
@@ -898,6 +965,8 @@
     position: absolute;
     /* Offsets back to the viewport top when the panel is taller than the
        screen and pinned above it (see product-section.tsx). */
+    /* Offsets back to the viewport top when the panel is taller than the
+       screen and pinned above it (see product-section.tsx). */
     top: var(--panel-overflow, 0px);
     right: 20px;
     left: 0;
@@ -914,10 +983,166 @@
     z-index: 20;
     background-color: #000;
     color: #fff;
-    padding-top: 100px;
+    /* Same top padding as .panelContent, so the title / price / rating
+       copy inside lands exactly where the IPP's own does. */
+    padding-top: calc(100px + var(--panel-center-offset, 0px));
+    padding-bottom: 40px;
     overflow-y: auto;
-    width:50vw;
-    padding-right: 22.3vw;
+    /* Left half of the page, 20px margin each side: the table runs the
+       full width up to the gallery, per the reference. */
+    width: 50vw;
+    padding-right: 20px;
+    font-size: 14px;
+    transform: translateX(-100%);
+    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .reviewsOverlay[data-state="open"] {
+    transform: translateX(0);
+  }
+}
+
+/* ---- Desktop reviews table — Set-Up-Components/Review (with grid) ----
+   Columns sit on the site grid (styles/globals.css tokens): Name at
+   column 1, Anchor at 3, Number at 5, Product at 6, Rating in the last
+   ~1.2 columns before the 20px right margin, +/- flush right.
+   Expanded detail (Age / Hair Length / Hair Type / Heat Type, then the
+   review) starts at column 5, one column per field. Measurements taken
+   from the 1920px reference: 16px header row, 14px rows, 61px row pitch,
+   25% white rules and labels. */
+@media (min-width: 769px) {
+  .reviewsOverlay {
+    --review-col: calc(
+      (
+          100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+            var(--grid-gutter)
+        ) / var(--grid-columns)
+    );
+    --review-step: calc(var(--review-col) + var(--grid-gutter));
+    --review-cols: calc(2 * var(--review-step)) calc(2 * var(--review-step))
+      var(--review-step) 1fr calc(var(--review-col) * 1.2);
+    --review-muted: rgba(255, 255, 255, 0.25);
+  }
+
+  .reviewsOverlay .reviewsPanelHead {
+    display: none;
+  }
+
+  /* Invisible layout copy of the IPP title block (see
+     product-details-panel.tsx) - same 4-column width as the IPP panel. */
+  .reviewsHeaderSpacer {
+    visibility: hidden;
+    width: calc(4 * var(--review-step) - var(--grid-gutter));
+  }
+
+  .reviewsOverlay .reviewsTitle {
+    grid-area: title;
+    margin: 0;
+  }
+
+  /* 30px from the rating line to the table header, per the reference
+     (.ratingLink already has 1em = 14px below it). */
+  .reviewsOverlay .reviewsPanel {
+    margin-top: 16px;
+    line-height: 19px;
+  }
+
+  .reviewsOverlay .reviewsHeaderRow {
+    grid-template-columns: var(--review-cols);
+    gap: 0;
+    padding: 0 0 6px;
+    opacity: 1;
+    font-size: 16px;
+    line-height: 19px;
+    border-bottom: 1px solid var(--review-muted);
+  }
+
+  .reviewsOverlay .reviewsHeaderRow > span:nth-child(2),
+  .reviewsOverlay .reviewsHeaderRow > span:nth-child(3) {
+    display: block;
+  }
+
+  .reviewsOverlay .reviewsList {
+    padding-top: 23px;
+  }
+
+  .reviewsOverlay .reviewRow {
+    border-bottom: 1px solid var(--review-muted);
+  }
+
+  .reviewsOverlay .reviewRowHead {
+    position: relative;
+    grid-template-columns: var(--review-cols);
+    gap: 0;
+    padding: 21px 0 10px;
+    line-height: 19px;
+  }
+
+  .reviewsOverlay .reviewAnchor {
+    display: flex;
+    align-items: center;
+    opacity: 1;
+  }
+
+  .reviewsOverlay .reviewNumber {
+    display: block;
+    opacity: 1;
+  }
+
+  .reviewsOverlay .reviewAnchorIcon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+
+  .reviewsOverlay .reviewName {
+    font-weight: 400;
+  }
+
+  .reviewsOverlay .reviewProduct {
+    opacity: 1;
+    padding-right: 1em;
+  }
+
+  .reviewsOverlay .reviewRating {
+    text-align: left;
+  }
+
+  .reviewsOverlay .reviewToggle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(calc(-50% + 5.5px));
+  }
+
+  .reviewsOverlay .reviewDetail {
+    padding: 21px 0 16px calc(4 * var(--review-step));
+  }
+
+  .reviewsOverlay .reviewMeta {
+    display: grid;
+    grid-template-columns: repeat(4, var(--review-step));
+    gap: 0;
+    margin: 0 0 30px;
+
+    dt {
+      opacity: 1;
+      color: var(--review-muted);
+      font-size: inherit;
+      margin: 0 0 13px;
+    }
+  }
+
+  .reviewsOverlay .reviewLabel {
+    opacity: 1;
+    color: var(--review-muted);
+    font-size: inherit;
+    margin: 0 0 13px;
+  }
+
+  .reviewsOverlay .reviewBody {
+    max-width: none;
+    opacity: 1;
+    line-height: 19px;
   }
 }
 

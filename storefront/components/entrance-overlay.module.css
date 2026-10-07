@@ -7,12 +7,16 @@
   justify-content: center;
   background: #000;
   opacity: 1;
-  pointer-events: none;
+  /* Blocks the site underneath until "Enter Site" is clicked. */
+  pointer-events: auto;
   transition: opacity 0.78s ease;
 }
 
+/* Background fades only after the text has finished fading (.content,
+   0.39s = half of this 0.78s fade). */
 .overlay[data-hiding="true"] {
   opacity: 0;
+  transition-delay: 0.39s;
   pointer-events: none;
 }
 
@@ -20,6 +24,18 @@
    anchor-carousel-section.module.css) — same size, weight, line-height,
    letter-spacing and centered max-width — just white-on-black instead of
    white-on-image. */
+.content {
+  position: relative;
+  transition: opacity 0.39s ease;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.content[data-hiding="true"] {
+  opacity: 0;
+}
+
 .text {
   margin: 0;
   width: min(44ch, calc(100% - var(--grid-margin) * 2));
@@ -48,4 +64,39 @@
 .text[data-revealed="true"] .word {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* "Enter Site": same text style as the sentence, underlined like the
+   site's other text buttons (.underlined in product-grid.module.css).
+   Fades/rises in after the last word, using the same motion as .word;
+   its transition-delay is set inline in entrance-overlay.tsx. */
+.enter {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  white-space: nowrap;
+  margin: 0;
+  padding: 2em 0 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: var(--font-size);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+  opacity: 0;
+  transform: translate(-50%, 20px);
+  pointer-events: none;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.enter[data-revealed="true"] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
 }

@@ -237,9 +237,11 @@ export type AnnouncementBar = {
 
 export type StoryQuestionBlock = {
   _type: "storyQuestionBlock";
-  question: string;
+  continuation?: boolean;
+  asker?: string;
+  question?: string;
   answerer?: string;
-  answer?: BlockContent;
+  answer?: StoryAnswerContent;
 };
 
 export type StoryMediaBlock = {
@@ -248,13 +250,37 @@ export type StoryMediaBlock = {
   width?: "centered" | "fullWidth";
   media: Media;
   secondMedia?: Media;
-  caption?: string;
 };
 
 export type StoryHeaderBlock = {
   _type: "storyHeaderBlock";
   text: string;
 };
+
+export type StoryFootnote = {
+  _type: "storyFootnote";
+  text: string;
+};
+
+export type StoryAnswerContent = Array<{
+  children?: Array<
+    | {
+        marks?: Array<string>;
+        text?: string;
+        _type: "span";
+        _key: string;
+      }
+    | ({
+        _key: string;
+      } & StoryFootnote)
+  >;
+  style?: "normal";
+  listItem?: never;
+  markDefs?: null;
+  level?: number;
+  _type: "block";
+  _key: string;
+}>;
 
 export type ProductInformation = {
   _type: "productInformation";
@@ -372,6 +398,12 @@ export type Post = {
   _rev: string;
   title: string;
   slug: Slug;
+  credits?: Array<{
+    role?: string;
+    name: string;
+    _type: "credit";
+    _key: string;
+  }>;
   authors?: Array<string>;
   date: string;
   readDuration?: number;
@@ -815,6 +847,8 @@ export type AllSanitySchemaTypes =
   | StoryQuestionBlock
   | StoryMediaBlock
   | StoryHeaderBlock
+  | StoryFootnote
+  | StoryAnswerContent
   | ProductInformation
   | ProductBlock
   | Picture
@@ -1446,13 +1480,17 @@ export type ALL_POSTS_QUERY_RESULT = Array<{
 
 // Source: data/sanity/queries.ts
 // Variable: POST_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{    _type,    _id,    title,    "slug": slug.current,    authors,    date,    readDuration,    category,    excerpt,    "cover": {      "mediaType": cover.mediaType,      "image": select(cover.mediaType == "image" => {        "_type": "image",        "asset": cover.image.asset,        "crop": cover.image.crop,        "hotspot": cover.image.hotspot,        "alt": cover.image.alt,        "lqip": cover.image.asset->metadata.lqip,      }),      "video": select(cover.mediaType == "video" => {        "playbackId": cover.video.asset->playbackId,        "aspectRatio": cover.video.asset->data.aspect_ratio,      }),    },    "pageBuilder": pageBuilder[]{        _key,  _type,  // storyMediaBlock  "media": select(_type == "storyMediaBlock" => {    "mediaType": media.mediaType,    "image": select(media.mediaType == "image" => {      "_type": "image",      "asset": media.image.asset,      "crop": media.image.crop,      "hotspot": media.image.hotspot,      "alt": media.image.alt,      "lqip": media.image.asset->metadata.lqip,    }),    "video": select(media.mediaType == "video" => {      "playbackId": media.video.asset->playbackId,      "aspectRatio": media.video.asset->data.aspect_ratio,    }),  }),  "layout": select(_type == "storyMediaBlock" => layout),  "width": select(_type == "storyMediaBlock" => width),  "caption": select(_type == "storyMediaBlock" => caption),  "secondMedia": select(_type == "storyMediaBlock" => {    "mediaType": secondMedia.mediaType,    "image": select(secondMedia.mediaType == "image" => {      "_type": "image",      "asset": secondMedia.image.asset,      "crop": secondMedia.image.crop,      "hotspot": secondMedia.image.hotspot,      "alt": secondMedia.image.alt,      "lqip": secondMedia.image.asset->metadata.lqip,    }),    "video": select(secondMedia.mediaType == "video" => {      "playbackId": secondMedia.video.asset->playbackId,      "aspectRatio": secondMedia.video.asset->data.aspect_ratio,    }),  }),  // storyHeaderBlock  "text": select(_type == "storyHeaderBlock" => text),  // storyQuestionBlock  "question": select(_type == "storyQuestionBlock" => question),  "answerer": select(_type == "storyQuestionBlock" => answerer),  "answer": select(_type == "storyQuestionBlock" => answer),    },    pageSeo{  _type,  "title": coalesce(title, ^.name),  description,  ogImage}  }
+// Query: *[_type == "post" && slug.current == $slug][0]{    _type,    _id,    title,    "slug": slug.current,    authors,    credits[]{role, name},    date,    readDuration,    category,    excerpt,    "cover": {      "mediaType": cover.mediaType,      "image": select(cover.mediaType == "image" => {        "_type": "image",        "asset": cover.image.asset,        "crop": cover.image.crop,        "hotspot": cover.image.hotspot,        "alt": cover.image.alt,        "lqip": cover.image.asset->metadata.lqip,        "dimensions": cover.image.asset->metadata.dimensions,      }),      "video": select(cover.mediaType == "video" => {        "playbackId": cover.video.asset->playbackId,        "aspectRatio": cover.video.asset->data.aspect_ratio,      }),    },    "pageBuilder": pageBuilder[]{        _key,  _type,  // storyMediaBlock  "media": select(_type == "storyMediaBlock" => {    "mediaType": media.mediaType,    "image": select(media.mediaType == "image" => {      "_type": "image",      "asset": media.image.asset,      "crop": media.image.crop,      "hotspot": media.image.hotspot,      "alt": media.image.alt,      "lqip": media.image.asset->metadata.lqip,      "dimensions": media.image.asset->metadata.dimensions,    }),    "video": select(media.mediaType == "video" => {      "playbackId": media.video.asset->playbackId,      "aspectRatio": media.video.asset->data.aspect_ratio,    }),  }),  "layout": select(_type == "storyMediaBlock" => layout),  "width": select(_type == "storyMediaBlock" => width),  "secondMedia": select(_type == "storyMediaBlock" => {    "mediaType": secondMedia.mediaType,    "image": select(secondMedia.mediaType == "image" => {      "_type": "image",      "asset": secondMedia.image.asset,      "crop": secondMedia.image.crop,      "hotspot": secondMedia.image.hotspot,      "alt": secondMedia.image.alt,      "lqip": secondMedia.image.asset->metadata.lqip,      "dimensions": secondMedia.image.asset->metadata.dimensions,    }),    "video": select(secondMedia.mediaType == "video" => {      "playbackId": secondMedia.video.asset->playbackId,      "aspectRatio": secondMedia.video.asset->data.aspect_ratio,    }),  }),  // storyHeaderBlock  "text": select(_type == "storyHeaderBlock" => text),  // storyQuestionBlock  "continuation": select(_type == "storyQuestionBlock" => continuation),  "asker": select(_type == "storyQuestionBlock" => asker),  "question": select(_type == "storyQuestionBlock" => question),  "answerer": select(_type == "storyQuestionBlock" => answerer),  "answer": select(_type == "storyQuestionBlock" => answer),    },    pageSeo{  _type,  "title": coalesce(title, ^.name),  description,  ogImage}  }
 export type POST_QUERY_RESULT = {
   _type: "post";
   _id: string;
   title: string;
   slug: string;
   authors: Array<string> | null;
+  credits: Array<{
+    role: string | null;
+    name: string;
+  }> | null;
   date: string;
   readDuration: number | null;
   category:
@@ -1473,6 +1511,7 @@ export type POST_QUERY_RESULT = {
       hotspot: SanityImageHotspot | null;
       alt: string | null;
       lqip: string | null;
+      dimensions: SanityImageDimensions | null;
     };
     video: {
       playbackId: string | null;
@@ -1486,9 +1525,10 @@ export type POST_QUERY_RESULT = {
         media: null;
         layout: null;
         width: null;
-        caption: null;
         secondMedia: null;
         text: string;
+        continuation: null;
+        asker: null;
         question: null;
         answerer: null;
         answer: null;
@@ -1505,6 +1545,7 @@ export type POST_QUERY_RESULT = {
             hotspot: SanityImageHotspot | null;
             alt: string | null;
             lqip: string | null;
+            dimensions: SanityImageDimensions | null;
           };
           video: {
             playbackId: string | null;
@@ -1513,7 +1554,6 @@ export type POST_QUERY_RESULT = {
         };
         layout: "double" | "single" | null;
         width: "centered" | "fullWidth" | null;
-        caption: string | null;
         secondMedia: {
           mediaType: "image" | "video" | null;
           image: {
@@ -1523,6 +1563,7 @@ export type POST_QUERY_RESULT = {
             hotspot: SanityImageHotspot | null;
             alt: string | null;
             lqip: string | null;
+            dimensions: SanityImageDimensions | null;
           };
           video: {
             playbackId: string | null;
@@ -1530,6 +1571,8 @@ export type POST_QUERY_RESULT = {
           };
         };
         text: null;
+        continuation: null;
+        asker: null;
         question: null;
         answerer: null;
         answer: null;
@@ -1540,12 +1583,13 @@ export type POST_QUERY_RESULT = {
         media: null;
         layout: null;
         width: null;
-        caption: null;
         secondMedia: null;
         text: null;
-        question: string;
+        continuation: boolean | null;
+        asker: string | null;
+        question: string | null;
         answerer: string | null;
-        answer: BlockContent | null;
+        answer: StoryAnswerContent | null;
       }
   > | null;
   pageSeo: {
@@ -1589,7 +1633,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': ALL_PAGES_SLUGS_RESULT;
     '\n  *[_type == "archive"][0]{\n    _type,\n    _id,\n    title,\n    description,\n    pageSeo{\n  _type,\n  "title": coalesce(title, ^.name),\n  description,\n  ogImage\n}\n  }\n': ARCHIVE_QUERY_RESULT;
     '\n  *[_type == "post"] | order(date desc){\n    _id,\n    title,\n    "slug": slug.current,\n    authors,\n    date,\n    readDuration,\n    category,\n    excerpt,\n    "cover": {\n      "mediaType": cover.mediaType,\n      "image": select(cover.mediaType == "image" => {\n        "_type": "image",\n        "asset": cover.image.asset,\n        "crop": cover.image.crop,\n        "hotspot": cover.image.hotspot,\n        "alt": cover.image.alt,\n        "lqip": cover.image.asset->metadata.lqip,\n      }),\n      "video": select(cover.mediaType == "video" => {\n        "playbackId": cover.video.asset->playbackId,\n        "aspectRatio": cover.video.asset->data.aspect_ratio,\n      }),\n    },\n  }\n': ALL_POSTS_QUERY_RESULT;
-    '\n  *[_type == "post" && slug.current == $slug][0]{\n    _type,\n    _id,\n    title,\n    "slug": slug.current,\n    authors,\n    date,\n    readDuration,\n    category,\n    excerpt,\n    "cover": {\n      "mediaType": cover.mediaType,\n      "image": select(cover.mediaType == "image" => {\n        "_type": "image",\n        "asset": cover.image.asset,\n        "crop": cover.image.crop,\n        "hotspot": cover.image.hotspot,\n        "alt": cover.image.alt,\n        "lqip": cover.image.asset->metadata.lqip,\n      }),\n      "video": select(cover.mediaType == "video" => {\n        "playbackId": cover.video.asset->playbackId,\n        "aspectRatio": cover.video.asset->data.aspect_ratio,\n      }),\n    },\n    "pageBuilder": pageBuilder[]{\n      \n  _key,\n  _type,\n  // storyMediaBlock\n  "media": select(_type == "storyMediaBlock" => {\n    "mediaType": media.mediaType,\n    "image": select(media.mediaType == "image" => {\n      "_type": "image",\n      "asset": media.image.asset,\n      "crop": media.image.crop,\n      "hotspot": media.image.hotspot,\n      "alt": media.image.alt,\n      "lqip": media.image.asset->metadata.lqip,\n    }),\n    "video": select(media.mediaType == "video" => {\n      "playbackId": media.video.asset->playbackId,\n      "aspectRatio": media.video.asset->data.aspect_ratio,\n    }),\n  }),\n  "layout": select(_type == "storyMediaBlock" => layout),\n  "width": select(_type == "storyMediaBlock" => width),\n  "caption": select(_type == "storyMediaBlock" => caption),\n  "secondMedia": select(_type == "storyMediaBlock" => {\n    "mediaType": secondMedia.mediaType,\n    "image": select(secondMedia.mediaType == "image" => {\n      "_type": "image",\n      "asset": secondMedia.image.asset,\n      "crop": secondMedia.image.crop,\n      "hotspot": secondMedia.image.hotspot,\n      "alt": secondMedia.image.alt,\n      "lqip": secondMedia.image.asset->metadata.lqip,\n    }),\n    "video": select(secondMedia.mediaType == "video" => {\n      "playbackId": secondMedia.video.asset->playbackId,\n      "aspectRatio": secondMedia.video.asset->data.aspect_ratio,\n    }),\n  }),\n  // storyHeaderBlock\n  "text": select(_type == "storyHeaderBlock" => text),\n  // storyQuestionBlock\n  "question": select(_type == "storyQuestionBlock" => question),\n  "answerer": select(_type == "storyQuestionBlock" => answerer),\n  "answer": select(_type == "storyQuestionBlock" => answer),\n\n    },\n    pageSeo{\n  _type,\n  "title": coalesce(title, ^.name),\n  description,\n  ogImage\n}\n  }\n': POST_QUERY_RESULT;
+    '\n  *[_type == "post" && slug.current == $slug][0]{\n    _type,\n    _id,\n    title,\n    "slug": slug.current,\n    authors,\n    credits[]{role, name},\n    date,\n    readDuration,\n    category,\n    excerpt,\n    "cover": {\n      "mediaType": cover.mediaType,\n      "image": select(cover.mediaType == "image" => {\n        "_type": "image",\n        "asset": cover.image.asset,\n        "crop": cover.image.crop,\n        "hotspot": cover.image.hotspot,\n        "alt": cover.image.alt,\n        "lqip": cover.image.asset->metadata.lqip,\n        "dimensions": cover.image.asset->metadata.dimensions,\n      }),\n      "video": select(cover.mediaType == "video" => {\n        "playbackId": cover.video.asset->playbackId,\n        "aspectRatio": cover.video.asset->data.aspect_ratio,\n      }),\n    },\n    "pageBuilder": pageBuilder[]{\n      \n  _key,\n  _type,\n  // storyMediaBlock\n  "media": select(_type == "storyMediaBlock" => {\n    "mediaType": media.mediaType,\n    "image": select(media.mediaType == "image" => {\n      "_type": "image",\n      "asset": media.image.asset,\n      "crop": media.image.crop,\n      "hotspot": media.image.hotspot,\n      "alt": media.image.alt,\n      "lqip": media.image.asset->metadata.lqip,\n      "dimensions": media.image.asset->metadata.dimensions,\n    }),\n    "video": select(media.mediaType == "video" => {\n      "playbackId": media.video.asset->playbackId,\n      "aspectRatio": media.video.asset->data.aspect_ratio,\n    }),\n  }),\n  "layout": select(_type == "storyMediaBlock" => layout),\n  "width": select(_type == "storyMediaBlock" => width),\n  "secondMedia": select(_type == "storyMediaBlock" => {\n    "mediaType": secondMedia.mediaType,\n    "image": select(secondMedia.mediaType == "image" => {\n      "_type": "image",\n      "asset": secondMedia.image.asset,\n      "crop": secondMedia.image.crop,\n      "hotspot": secondMedia.image.hotspot,\n      "alt": secondMedia.image.alt,\n      "lqip": secondMedia.image.asset->metadata.lqip,\n      "dimensions": secondMedia.image.asset->metadata.dimensions,\n    }),\n    "video": select(secondMedia.mediaType == "video" => {\n      "playbackId": secondMedia.video.asset->playbackId,\n      "aspectRatio": secondMedia.video.asset->data.aspect_ratio,\n    }),\n  }),\n  // storyHeaderBlock\n  "text": select(_type == "storyHeaderBlock" => text),\n  // storyQuestionBlock\n  "continuation": select(_type == "storyQuestionBlock" => continuation),\n  "asker": select(_type == "storyQuestionBlock" => asker),\n  "question": select(_type == "storyQuestionBlock" => question),\n  "answerer": select(_type == "storyQuestionBlock" => answerer),\n  "answer": select(_type == "storyQuestionBlock" => answer),\n\n    },\n    pageSeo{\n  _type,\n  "title": coalesce(title, ^.name),\n  description,\n  ogImage\n}\n  }\n': POST_QUERY_RESULT;
     '\n  *[_type == "post" && defined(slug.current)]\n  {"slug": slug.current}\n': ALL_POST_SLUGS_RESULT;
   }
 }

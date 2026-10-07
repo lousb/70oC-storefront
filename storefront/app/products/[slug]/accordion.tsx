@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import s from "./page.module.css";
@@ -15,23 +15,28 @@ export type AccordionEntry = {
 
 // Matches Set-Up-Components/ProductPage's collapsed-by-default rows (Details
 // / Ingredients / How To Use / Shipping / Where We Live), each toggled
-// independently via a leading "+" that flips to "–" when open. Reviews
-// (the separate "Reviews Flyout" reference) are out of scope for now.
+// via a leading "+" that flips to "–" when open.
+//
+// Every panel stays mounted and animates its height (grid-template-rows
+// 0fr -> 1fr, see .accordionPanel in page.module.css) so rows open
+// downward. product-section.tsx centres the details panel on its
+// *collapsed* height (it subtracts .accordionPanel heights), so opening
+// a row never re-centres / shifts the panel up.
 export function Accordion({ items }: { items: AccordionEntry[] }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
-
-  // Opening/closing an item changes .productDetails' own content height
-  // (it's content-height, not a fixed box - see page.module.css), which
-  // GSAP's pin (product-section.tsx) needs to know about so the pinned
-  // panel gets exactly as much scroll room as its current content, on
-  // either side of the toggle.
-  useEffect(() => {
-    ScrollTrigger.refresh();
-  }, [openKey]);
 
   if (items.length === 0) {
     return null;
   }
+
+  // Opening/closing changes .productDetails' content height, which GSAP's
+  // pin (product-section.tsx) needs to know about - refresh once the
+  // height animation has finished, so it measures the settled size.
+  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.propertyName !== "grid-template-rows") return;
+    ScrollTrigger.refresh();
+  };
 
   return (
     <div className={s.accordion}>
@@ -48,7 +53,17 @@ export function Accordion({ items }: { items: AccordionEntry[] }) {
               <span>{item.title}</span>
               <span aria-hidden="true">{isOpen ? "–" : "+"}</span>
             </button>
-            {isOpen && <div className={s.accordionContent}>{item.content}</div>}
+            <div
+              className={s.accordionPanel}
+              data-open={isOpen}
+              aria-hidden={!isOpen}
+              inert={!isOpen || undefined}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              <div className={s.accordionPanelInner}>
+                <div className={s.accordionContent}>{item.content}</div>
+              </div>
+            </div>
           </div>
         );
       })}

@@ -6,6 +6,10 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "../app/_cart/cart-context";
 import { LocalCart } from "../app/_cart/local-cart";
+import {
+  ProductAnchorsProvider,
+  type ProductAnchorMap,
+} from "../app/_cart/product-anchors";
 import { LinkFieldsType } from "../data/sanity/queries";
 import { useMobilePanel } from "./mobile-panel-context";
 import SanityLink from "./sanity-link";
@@ -277,13 +281,16 @@ function SydneyWeather() {
 export function HeaderContent({
   headerDescription,
   footerInfoLinks,
+  productAnchors = {},
 }: {
   headerDescription?: string | null;
   footerInfoLinks?: InfoLinks;
+  productAnchors?: ProductAnchorMap;
 }) {
   const description = headerDescription?.trim() || DEFAULT_HEADER_DESCRIPTION;
 
   return (
+    <ProductAnchorsProvider value={productAnchors}>
     <div className={s.layer} aria-hidden={false}>
       <p className={`${s.description} ${s.desktopOnly}`}>{description}</p>
 
@@ -302,5 +309,6 @@ export function HeaderContent({
         <SydneyWeather />
       </div>
     </div>
+    </ProductAnchorsProvider>
   );
 }

@@ -11,6 +11,7 @@ import { CartItem } from "../../shopify/types";
 import { createUrl } from "../../shopify/utils";
 import { redirectToCheckout, saveCart } from "./cart-actions";
 import { useCart } from "./cart-context";
+import { useProductAnchors } from "./product-anchors";
 import s from "./cart.module.css";
 
 type MerchandiseSearchParams = {
@@ -19,6 +20,7 @@ type MerchandiseSearchParams = {
 
 export function Cart() {
   const { cart, updateCartItem } = useCart();
+  const productAnchors = useProductAnchors();
   // Desktop keeps its own local open state (unchanged side-drawer
   // behaviour). Mobile is driven by the shared MobilePanelProvider so
   // the corner triggers rendered in header-content.tsx ("Cart (n)" /
@@ -28,6 +30,28 @@ export function Cart() {
   const [desktopOpen, setDesktopOpen] = useState(false);
   const isMobileCartOpen = activePanel === "cart";
   const isOpen = desktopOpen || isMobileCartOpen;
+
+  // Keeps the drawer mounted through its slide-out, and flips
+  // data-state a frame after mount so the slide-in transition runs.
+  const [rendered, setRendered] = useState(false);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRendered(true);
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setShown(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    setShown(false);
+    const t = setTimeout(() => setRendered(false), 400);
+    return () => clearTimeout(t);
+  }, [isOpen]);
 
   const openCart = () => setDesktopOpen(true);
   const closeCart = () => {
@@ -79,17 +103,39 @@ export function Cart() {
         </span>
       </button>
 
-      {isOpen &&
+      {rendered &&
         createPortal(
         <>
-          <div className={`${s.overlay} ${s.desktopOnly}`} onClick={closeCart} aria-hidden="true" />
+          {/* Clicking off the drawer (this backdrop) is how it closes on
+              desktop - no close button in the drawer itself. */}
+          <div
+            className={`${s.overlay} ${s.desktopOnly}`}
+            data-state={shown ? "open" : "closed"}
+            onClick={closeCart}
+            aria-hidden="true"
+          />
 
-          <aside className={s.cart} role="dialog" aria-label="Shopping cart" aria-modal="true">
-            <div className={`${s.cartHeader} ${s.desktopOnly}`}>
+          <aside
+            className={s.cart}
+            data-cart-drawer
+            data-state={shown ? "open" : "closed"}
+            role="dialog"
+            aria-label="Shopping cart"
+            aria-modal="true"
+          >
+            {/* Desktop: "Cart (n)" left, "Close" right, on the site
+                header's top line (Set-Up-Components/Cart). */}
+            <div className={s.cartHeader}>
               <span className={s.cartTitle}>
-                {cart?.totalQuantity ? `(${cart.totalQuantity})` : "Cart"}
+                Cart ({cart?.totalQuantity ?? 0})
               </span>
-              <button className={s.closeButton} onClick={closeCart} aria-label="Close cart">×</button>
+              <button
+                type="button"
+                className={s.closeButton}
+                onClick={closeCart}
+              >
+                Close
+              </button>
             </div>
 
             {!cart || cart.lines.length === 0 ? (
@@ -110,6 +156,16 @@ export function Cart() {
                       );
                       const cartImage = item.merchandise.variantImage ?? item.merchandise.product.featuredImage;
                       const hasVariant = item.merchandise.title !== DEFAULT_OPTION;
+                      const anchor = productAnchors[item.merchandise.product.handle];
+                      // Product line: Shopify title, plus the variant and
+                      // a quantity when they apply (the reference has no
+                      // stepper, so quantity is shown rather than edited).
+                      const productLine = [
+                        item.merchandise.product.title,
+                        hasVariant ? item.merchandise.title : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ");
 
                       return (
                         <li key={i} className={s.cartItem}>
@@ -129,67 +185,52 @@ export function Cart() {
                             )}
                           </Link>
 
-                          {/* Desktop layout — unchanged */}
-                          <div className={`${s.itemInfo} ${s.desktopOnly}`}>
-                            <Link href={merchandiseUrl} onClick={closeCart} className={s.itemTitle}>
-                              {item.merchandise.product.title}
-                            </Link>
-                            {hasVariant && (
-                              <p className={s.itemVariant}>{item.merchandise.title}</p>
-                            )}
-                            <Price amount={item.cost.totalAmount.amount} currencyCode={item.cost.totalAmount.currencyCode} />
-                          </div>
-                          <div className={`${s.itemControls} ${s.desktopOnly}`}>
-                            <div className={s.quantityRow}>
-                              <EditItemQuantityButton item={item} type="minus" optimisticUpdate={updateCartItem} />
-                              <span className={s.quantity}>{item.quantity}</span>
-                              <EditItemQuantityButton item={item} type="plus" optimisticUpdate={updateCartItem} />
+                          {/* "Pressure 001" + price, product title,
+                              "Remove" - same on desktop and mobile
+                              (Set-Up-Components/Cart). */}
+                          <div className={s.itemInfo}>
+                            <div className={s.itemTopLine}>
+                              <span className={s.itemAnchor}>
+                                {anchor ? (
+                                  <>
+                                    {anchor.anchor}
+                                    {anchor.index && (
+                                      <span className={s.itemIndex}>{anchor.index}</span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <Link href={merchandiseUrl} onClick={closeCart} className={s.itemTitle}>
+                                    {productLine}
+                                  </Link>
+                                )}
+                              </span>
+                              <span className={s.itemPrice}>
+                                {formatMoney(item.cost.totalAmount.amount, item.cost.totalAmount.currencyCode)}
+                              </span>
                             </div>
+                            {anchor && (
+                              <Link href={merchandiseUrl} onClick={closeCart} className={s.itemTitle}>
+                                {productLine}
+                                {item.quantity > 1 && ` \u00d7 ${item.quantity}`}
+                              </Link>
+                            )}
                             <DeleteItemButton item={item} optimisticUpdate={updateCartItem} />
                           </div>
 
-                          {/* Mobile layout — full-width row: title +
-                              variant/price meta line, "Remove" below.
-                              No quantity stepper (not in the reference). */}
-                          <div className={`${s.itemInfoMobile} ${s.mobileOnly}`}>
-                            <div className={s.itemMobileTopLine}>
-                              <Link href={merchandiseUrl} onClick={closeCart} className={s.itemTitle}>
-                                {item.merchandise.product.title}
-                              </Link>
-                              {hasVariant && (
-                                <span className={s.itemVariant}>{item.merchandise.title}</span>
-                              )}
-                              <span className={s.itemPriceMobile}>
-                                <Price amount={item.cost.totalAmount.amount} currencyCode={item.cost.totalAmount.currencyCode} />
-                              </span>
-                            </div>
-                            <DeleteItemButton item={item} optimisticUpdate={updateCartItem} />
-                          </div>
                         </li>
                       );
                     })}
                 </ul>
 
-                <div className={`${s.cartFooter} ${s.desktopOnly}`}>
-                  <div className={s.totalRow}>
-                    <span>Total</span>
-                    <Price amount={cart.cost.totalAmount.amount} currencyCode={cart.cost.totalAmount.currencyCode} />
-                  </div>
-                  <p className={s.shippingNote}>Shipping calculated at checkout</p>
+                <div className={s.cartFooter}>
+                  <p className={s.shippingNote}>Shipping &amp; taxes calculated at checkout.</p>
                   <form action={() => { redirectToCheckout(cart); }}>
-                    <CheckoutButton />
+                    <CheckoutButton
+                      total={formatTotal(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode)}
+                    />
                   </form>
                 </div>
 
-                <form
-                  action={() => { redirectToCheckout(cart); }}
-                  className={`${s.mobileCheckoutRow} ${s.mobileOnly}`}
-                >
-                  <MobileCheckoutButton />
-                  <span className={s.mobileCheckoutTotal}>
-                    <Price amount={cart.cost.totalAmount.amount} currencyCode={cart.cost.totalAmount.currencyCode} />
-                  </span>
-                </form>
               </div>
             )}
           </aside>
@@ -200,23 +241,34 @@ export function Cart() {
   );
 }
 
-function CheckoutButton() {
+// "$180 AUD" - symbol amount plus the visible currency code, per the
+// reference's checkout bar.
+function formatTotal(amount: string, currencyCode: string) {
+  return `${formatMoney(amount, currencyCode)} ${currencyCode}`;
+}
+
+// "$90" rather than "$90.00" - cents only when there are any, per the
+// reference.
+function formatMoney(amount: string, currencyCode: string) {
+  const value = parseFloat(amount);
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: currencyCode,
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
+}
+
+function CheckoutButton({ total }: { total: string }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" disabled={pending} className={s.checkoutButton} data-pending={pending}>
-      {pending ? "Redirecting…" : "Proceed to Checkout"}
+      <span>{pending ? "Redirecting…" : "Checkout"}</span>
+      <span>{total}</span>
     </button>
   );
 }
 
-function MobileCheckoutButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className={s.mobileCheckoutButton} data-pending={pending}>
-      {pending ? "Redirecting…" : "Checkout"}
-    </button>
-  );
-}
 
 function DeleteItemButton({ item, optimisticUpdate }: { item: CartItem; optimisticUpdate: any }) {
   return (

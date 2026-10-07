@@ -53,7 +53,10 @@ export function AddToCart({ product }: { product: Product }) {
         {/* Label — slides up to "Added" on add. No price here; it's
             already shown up top next to the title (.priceTop) on desktop,
             and the button's own price used to just duplicate it. */}
-        <span style={{ position: "relative", height: "1.2em", overflow: "hidden", display: "inline-block" }}>
+        <span
+          className={s.addToCartLabel}
+          style={{ position: "relative", height: "1.2em", overflow: "hidden", display: "inline-block" }}
+        >
           <span
             style={{
               display: "block",

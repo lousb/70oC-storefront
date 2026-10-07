@@ -3,13 +3,17 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* Invisible click-catcher: the reference leaves the page untouched
+     (no dim/blur) behind the drawer - clicking off it still closes. */
+  background: transparent;
   /* Above the floating header layer (550) and mobile menu drawer (570)
      so the cart always wins if both could ever be open. */
   z-index: 580;
-  animation: fadeIn 0.2s ease forwards;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.overlay[data-state="open"] {
+  opacity: 1;
 }
 
 /* Cart drawer / mobile takeover */
@@ -24,8 +28,12 @@
   flex-direction: column;
   background-color: var(--color-bg, #fff);
   color: var(--color-text, #000);
-  animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
+}
+.cart[data-state="open"] {
+  transform: translate(0, 0);
 }
 
 /* Local desktop/mobile toggles, same pattern as header-content.module.css
@@ -364,7 +372,13 @@
     max-height: none;
     z-index: 800;
     padding-top: 100px;
-    animation: none;
+    /* Mobile takeover stays instant (opens/closes with the header's
+       corner trigger), so no slide here. */
+    transform: none;
+    transition: none;
+  }
+  .cart[data-state="closed"] {
+    visibility: hidden;
   }
 
   .cartItem {
@@ -395,19 +409,346 @@
   }
 }
 
-/* Desktop — side drawer */
+/* Mobile: the drawer-only header/footer never show (the takeover uses
+   the header's corner triggers + .mobileCheckoutRow instead). */
+@media (max-width: 767px) {
+  .cartHeader {
+    display: none;
+  }
+}
+
+/* ================= Desktop — side drawer =================
+   Set-Up-Components/Cart (with grid), measured at 1920px:
+   - drawer = the last 4 grid columns + the right margin (+ the gutter
+     before them): 440px at 1920, flush right, full height, white
+   - 20px padding: "Cart (n)" / "Close" on the site header's top line
+   - items start 140px from the top: 72px square image, text 10px right
+     of it - "Pressure 001" + price, product title, "Remove"; 112px
+     item pitch
+   - footer: grey "Shipping & taxes..." note, then a black 31px
+     "Checkout ... $180 AUD" bar, 20px above the "0"/"OC" marks
+   - everything at the site's base type size, no dim/blur behind */
 @media (min-width: 768px) {
   .cart {
+    --cart-step: calc(
+      (
+          100vw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) *
+            var(--grid-gutter)
+        ) / var(--grid-columns) + var(--grid-gutter)
+    );
     left: auto;
-    width: 420px;
-    max-height: 100dvh;
     top: 0;
     bottom: 0;
-    animation: slideInRight 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+    /* Just under the blended header layer (550), so the clock/weather
+       text stays on top of the drawer like the reference - the nav
+       stack is hidden while it's open (see below), "Close" replaces it. */
+    z-index: 545;
+    width: calc(4 * var(--cart-step) + var(--grid-margin));
+    max-height: none;
+    /* Checkout bar's bottom sits 20px above the top of the floating
+       "0"/"OC" marks (components/floating-logo.module.css, desktop:
+       bottom 20px + 2rem, height min(4vw, 33px)). */
+    padding: 20px 20px calc(20px + 2rem + min(4vw, 33px) + 20px);
+    background: #fff;
+    color: #000;
+    font-size: var(--font-size);
+    line-height: 1.35;
+    transform: translateX(100%);
+  }
+
+  .overlay {
+    z-index: 540;
+  }
+
+  .cartHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0;
+  }
+
+  .cartTitle {
+    font-size: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .closeButton {
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    opacity: 1;
+  }
+  .closeButton:hover {
+    opacity: 0.35;
+  }
+
+  .cartBody {
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .itemList {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0;
+    /* First item's top at 140px from the drawer top: minus the 20px
+       padding and the 1.35em header line. */
+    margin-top: calc(140px - 20px - 1.35em);
+  }
+
+  .cartItem {
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    padding: 0;
+  }
+
+  .cartItem + .cartItem {
+    /* 112px item pitch (3 text lines + gaps = ~78.6px tall). */
+    margin-top: calc(112px - 3 * 1.35em - 0.2125em - 0.65em);
+  }
+
+  .itemImage {
+    width: 72px;
+    height: 72px;
+  }
+
+  .itemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+  }
+
+  .itemTopLine {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .itemIndex {
+    margin-left: 10px;
+  }
+
+  .itemPrice {
+    white-space: nowrap;
+  }
+
+  .itemTitle {
+    font-size: inherit;
+  }
+
+  .itemInfo > .itemTitle {
+    margin-top: 0.2125em;
+  }
+
+  .itemInfo > form {
+    margin-top: 0.65em;
+  }
+
+  .removeButton {
+    padding: 0;
+    font: inherit;
+    font-size: inherit;
+    letter-spacing: normal;
+    text-decoration: none;
+    opacity: 1;
+  }
+  .removeButton:hover {
+    opacity: 0.35;
+  }
+
+  .emptyState {
+    margin-top: calc(140px - 20px - 1.35em);
+    padding: 0;
+    font-size: inherit;
+  }
+
+  .cartFooter {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: auto;
+    padding: 0;
+  }
+
+  .shippingNote {
+    /* Bar top 31px below the note's line top. */
+    margin: 0 0 calc(31px - 1.35em);
+    font-size: inherit;
+    text-align: left;
+    opacity: 1;
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* The mobile-only blocks set their own display (flex) later in this
+     file, which beat .mobileOnly's display: none - so they were
+     rendering inside the desktop drawer too. */
+  .itemInfoMobile,
+  .mobileCheckoutRow {
+    display: none;
+  }
+
+  .checkoutButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 31px;
+    min-height: 0;
+    padding: 0 10px;
+    font: inherit;
+    font-size: inherit;
+    letter-spacing: normal;
+    text-transform: none;
   }
 }
 
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
+}
+
+/* ================= Mobile — full-screen takeover =================
+   Set-Up-Components/Cart mobile reference (360 x 800): same item and
+   footer design as the desktop drawer, at the 12px mobile type size,
+   on the 8-column mobile grid's 20px margins.
+   - "Menu" / "Close" are the header's corner triggers (blended layer,
+     on top of this panel), so no drawer header here
+   - first item at 146px from the top; 72px square image, text 10px
+     right of it: "Pressure 001" + price, product title (23px below),
+     "Remove" 60px under the title line; 112px item pitch
+   - grey shipping note, then a black 28px "Checkout ... $180 AUD" bar
+     (10px inner padding), 20px above the floating "0"/"OC" marks */
+@media (max-width: 767px) {
+  .cart {
+    /* Checkout bar's bottom sits 20px above the top of the floating
+       "0"/"OC" marks (floating-logo.module.css, mobile: bottom 20px,
+       height min(7vw, 26px)). */
+    padding: 146px var(--grid-margin) calc(20px + min(7vw, 26px) + 20px);
+    font-size: var(--font-size);
+    line-height: 1.35;
+    background: #fff;
+    color: #000;
+  }
+
+  .cartBody {
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .itemList {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .cartItem {
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    padding: 0;
+  }
+
+  /* 112px item pitch (item = the 76px text column below). */
+  .cartItem + .cartItem {
+    margin-top: 36px;
+  }
+
+  .itemImage {
+    width: 72px;
+    height: 72px;
+  }
+
+  .itemInfo {
+    display: flex;
+    flex-direction: column;
+    /* "Remove" line top 60px under the title line, per the reference
+       (its text just hangs below the 72px image's bottom edge). */
+    min-height: 76px;
+    gap: 0;
+    padding: 0;
+  }
+
+  .itemTopLine {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .itemIndex {
+    margin-left: 10px;
+  }
+
+  .itemPrice {
+    white-space: nowrap;
+  }
+
+  .itemInfo > .itemTitle {
+    margin-top: calc(23px - 1.35em);
+    white-space: normal;
+  }
+
+  /* "Remove" sits on the image's bottom edge. */
+  .itemInfo > form {
+    margin-top: auto;
+  }
+
+  .removeButton {
+    padding: 0;
+    font: inherit;
+    letter-spacing: normal;
+    text-decoration: none;
+    opacity: 1;
+    color: inherit;
+  }
+
+  .emptyState {
+    padding: 0;
+    opacity: 1;
+  }
+
+  .cartFooter {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding: 0;
+    gap: 0;
+  }
+
+  .shippingNote {
+    /* Bar top 31px below the note's line top. */
+    margin: 0 0 calc(31px - 1.35em);
+    text-align: left;
+    opacity: 1;
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .checkoutButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 28px;
+    min-height: 0;
+    padding: 0 10px;
+    font: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+}
+
+/* Product pages lift the mobile "0"/"OC" above the fixed Add to Cart
+   bar (floating-logo.module.css) - keep the checkout bar 20px above
+   them there too. */
+@media (max-width: 767px) {
+  :global(body:has([data-mobile-cart-bar])) .cart {
+    padding-bottom: calc(
+      var(--mobile-cart-btn-h) + 40px + 10px + env(safe-area-inset-bottom) +
+        min(7vw, 26px) + 20px
+    );
+  }
 }

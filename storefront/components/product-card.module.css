@@ -15,12 +15,45 @@
   inset: 0;
 }
 
+/* Hover: crossfade to the anchor's Home Image 1 + its line-art icon.
+   Only on devices that actually hover, so a tap on mobile goes straight
+   through to the product page. */
+.hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.hoverIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: auto;
+  transform: translate(-50%, -50%);
+  /* 02Icons PNGs are near-black line art - invert to white over the
+     image, same as the product page's floating icon. */
+  filter: invert(1);
+}
+
+/* Mouse/trackpad only: a tap on a touch screen never shows it (no
+   sticky hover, no focus state from the tap). */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .hover,
+  .card:focus-visible .hover {
+    opacity: 1;
+  }
+}
+
 .caption {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
   margin-top: 10px;
+  padding-bottom: 2em;
   font-size: var(--font-size);
   color: #000;
 }

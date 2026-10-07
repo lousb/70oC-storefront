@@ -10,17 +10,22 @@ import s from "./entrance-overlay.module.css";
 // never remounts the root layout, so this deliberately does NOT replay
 // on ordinary in-app navigation, only on the two cases asked for.
 //
-// No click needed — every load (first visit or a refresh) plays the
-// word-by-word reveal, waits for the LAST word to finish animating in,
-// holds for HOLD_MS, then fades out.
+// Every load (first visit or a refresh) plays the word-by-word reveal,
+// then an underlined "Enter Site" button fades in after the last word.
+// The overlay stays up until the visitor clicks it (no timeout), then
+// fades out.
 const SENTENCE =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas tristique posuere velit, et feugiat lacus tempor non.";
 const WORDS = SENTENCE.split(" ");
 
 const WORD_STAGGER_MS = 54; // delay between each word starting its reveal
 const WORD_REVEAL_MS = 600; // must match .word's transition duration in the CSS
-const HOLD_MS = 800; // pause after the last word lands, before fading out
+const BUTTON_DELAY_MS = 200; // pause after the last word lands, before the button appears
 const FADE_MS = 780; // must match .overlay's transition duration in the CSS below
+// On exit the text fades first, at half the background's duration, then
+// the background fades. Must match .content's transition and .overlay's
+// transition-delay in the CSS.
+const TEXT_FADE_MS = FADE_MS / 2;
 // Time from the reveal starting until the last word has fully landed.
 const REVEAL_TOTAL_MS = (WORDS.length - 1) * WORD_STAGGER_MS + WORD_REVEAL_MS;
 
@@ -49,30 +54,15 @@ export function EntranceOverlay() {
     // paints before flipping to the revealed one — otherwise the browser
     // can coalesce both into a single frame and the transition never
     // plays.
-    // Hide timers start from the moment the reveal actually kicks off
-    // (not mount), so the full sentence always finishes animating in,
-    // then holds HOLD_MS, then fades.
-    let hideTimer: ReturnType<typeof setTimeout> | undefined;
-    let removeTimer: ReturnType<typeof setTimeout> | undefined;
     rafRef.current = requestAnimationFrame(() => {
       rafRef2.current = requestAnimationFrame(() => {
         setRevealed(true);
-        hideTimer = setTimeout(
-          () => setHiding(true),
-          REVEAL_TOTAL_MS + HOLD_MS,
-        );
-        removeTimer = setTimeout(
-          () => setVisible(false),
-          REVEAL_TOTAL_MS + HOLD_MS + FADE_MS,
-        );
       });
     });
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       cancelAnimationFrame(rafRef2.current);
-      clearTimeout(hideTimer);
-      clearTimeout(removeTimer);
     };
     // Intentionally empty deps — this should only ever run once, on
     // first mount of the root layout (see comment above), never again
@@ -80,11 +70,24 @@ export function EntranceOverlay() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fade out, then unmount once the fade has finished.
+  useEffect(() => {
+    if (!hiding) return;
+    const removeTimer = setTimeout(
+      () => setVisible(false),
+      TEXT_FADE_MS + FADE_MS,
+    );
+    return () => clearTimeout(removeTimer);
+  }, [hiding]);
+
   if (isStudio || !visible) return null;
 
   return (
-    <div className={s.overlay} data-hiding={hiding} aria-hidden="true">
-      <p className={s.text} data-revealed={revealed}>
+    <div className={s.overlay} data-hiding={hiding}>
+      {/* Only the sentence is centered; the button hangs below it
+          (absolutely positioned) so it doesn't shift the sentence up. */}
+      <div className={s.content} data-hiding={hiding}>
+      <p className={s.text} data-revealed={revealed} aria-hidden="true">
         {WORDS.map((word, i) => (
           <Fragment key={i}>
             <span
@@ -97,6 +100,17 @@ export function EntranceOverlay() {
           </Fragment>
         ))}
       </p>
+      <button
+        type="button"
+        className={s.enter}
+        data-revealed={revealed}
+        style={{ transitionDelay: `${REVEAL_TOTAL_MS + BUTTON_DELAY_MS}ms` }}
+        onClick={() => setHiding(true)}
+        disabled={hiding}
+      >
+        Enter Site
+      </button>
+      </div>
     </div>
   );
 }

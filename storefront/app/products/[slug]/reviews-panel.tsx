@@ -10,27 +10,19 @@ import { ReviewRow } from "./review-row";
 // replaces Add To Cart / icon row / accordion when the rating link is
 // clicked — same table, same expand-on-click rows, per
 // Set-Up-Components/ProductPage's Reviews Flyout reference.
-export function ReviewsPanel({ onClose }: { onClose?: () => void }) {
-  const [openName, setOpenName] = useState<string | null>(
-    DEMO_REVIEWS[0]?.name ?? null,
-  );
+export function ReviewsPanel() {
+  const [openName, setOpenName] = useState<string | null>(null);
 
   return (
     <div className={s.reviewsPanel}>
+      {/* Mobile-only heading (hidden on desktop via CSS) - the desktop
+          flyout sits under the IPP's own title + rating line instead,
+          which stay in place and act as its heading. No close button:
+          the rating line toggles the flyout. */}
       <div className={s.reviewsPanelHead}>
         <p className={s.reviewsHeading}>
           {formatRating(DEMO_RATING)}/5 ({DEMO_REVIEW_COUNT} Reviews)
         </p>
-        {onClose && (
-          <button
-            type="button"
-            className={s.reviewsClose}
-            onClick={onClose}
-            aria-label="Close reviews"
-          >
-            Close
-          </button>
-        )}
       </div>
 
       <div className={s.reviewsHeaderRow} aria-hidden="true">

@@ -73,8 +73,15 @@ export function ProductSection({
         );
         if (!content) return 0;
         const style = getComputedStyle(content);
+        // Centre on the panel's collapsed height: open accordion rows
+        // are excluded, so opening one grows the panel downward instead
+        // of re-centring it (which shifted everything up).
+        const accordionOpenHeight = Array.from(
+          content.querySelectorAll<HTMLElement>(`.${s.accordionPanel}`),
+        ).reduce((sum, el) => sum + el.getBoundingClientRect().height, 0);
         const visibleHeight =
           content.getBoundingClientRect().height -
+          accordionOpenHeight -
           parseFloat(style.paddingTop) -
           parseFloat(style.paddingBottom);
         return Math.max(

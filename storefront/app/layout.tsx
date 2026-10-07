@@ -9,7 +9,12 @@ import { Analytics } from "@vercel/analytics/next"
 import { DraftModeToast } from "./draft-mode-toast";
 
 import { sanityFetch, SanityLive } from "../data/sanity";
-import { HOME_QUERY, SETTINGS_QUERY } from "../data/sanity/queries";
+import {
+  ALL_PRODUCTS_QUERY,
+  HOME_QUERY,
+  SETTINGS_QUERY,
+} from "../data/sanity/queries";
+import type { ProductAnchorMap } from "./_cart/product-anchors";
 import { resolveOpenGraphImage } from "../sanity/utils";
 import { handleError } from "./client-utils";
 
@@ -140,8 +145,34 @@ export default async function RootLayout({
   );
 }
 
+// Display labels for the locked upper-case category values products
+// store (e.g. "PRESSURE") - same lookup as app/products/page.tsx.
+const ANCHOR_LABELS: Record<string, string> = {
+  PRESSURE: "Pressure",
+  FLOW: "Flow",
+  MOMENTUM: "Momentum",
+  REPETITION: "Repetition",
+  BALANCE: "Balance",
+  BLOOM: "Bloom",
+};
+
 export async function Header() {
-  const { data: settings } = await sanityFetch({ query: SETTINGS_QUERY });
+  const [{ data: settings }, { data: products }] = await Promise.all([
+    sanityFetch({ query: SETTINGS_QUERY }),
+    sanityFetch({ query: ALL_PRODUCTS_QUERY, stega: false }),
+  ]);
+
+  // Shopify handle -> "Pressure" / "001", for the cart's item lines.
+  const productAnchors: ProductAnchorMap = {};
+  for (const product of products ?? []) {
+    if (!product.slug || !product.category) continue;
+    productAnchors[product.slug] = {
+      anchor: ANCHOR_LABELS[product.category] ?? product.category,
+      index: product.categoryPosition
+        ? String(product.categoryPosition).padStart(3, "0")
+        : "",
+    };
+  }
 
   return (
     <header className={s.header}>
@@ -150,6 +181,7 @@ export async function Header() {
         // Same _key: string vs null looseness footer.tsx already lives
         // with when passing this query result to SanityLink.
         footerInfoLinks={settings?.footer?.infoLinks as any}
+        productAnchors={productAnchors}
       />
     </header>
   );
