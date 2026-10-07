@@ -19,7 +19,7 @@ type MerchandiseSearchParams = {
 };
 
 export function Cart() {
-  const { cart, updateCartItem } = useCart();
+  const { cart, updateCartItem, hydrated } = useCart();
   const productAnchors = useProductAnchors();
   // Desktop keeps its own local open state (unchanged side-drawer
   // behaviour). Mobile is driven by the shared MobilePanelProvider so
@@ -82,8 +82,8 @@ export function Cart() {
   }, [desktopOpen, isMobileCartOpen]);
 
   useEffect(() => {
-    if (cart) saveCart(cart);
-  }, [cart]);
+    if (cart && hydrated) saveCart(cart);
+  }, [cart, hydrated]);
 
   return (
     <>
@@ -151,7 +151,7 @@ export function Cart() {
                         if (value !== DEFAULT_OPTION) merchandiseSearchParams[name.toLowerCase()] = value;
                       });
                       const merchandiseUrl = createUrl(
-                        `/product/${item.merchandise.product.handle}`,
+                        `/products/${item.merchandise.product.handle}`,
                         new URLSearchParams(merchandiseSearchParams),
                       );
                       const cartImage = item.merchandise.variantImage ?? item.merchandise.product.featuredImage;

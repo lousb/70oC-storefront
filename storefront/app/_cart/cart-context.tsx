@@ -3,8 +3,10 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useOptimistic,
+  useState,
 } from "react";
 import { DEFAULT_CURRENCY_CODE } from "../../shopify/constants";
 import { Cart, CartItem, Product, ProductVariant } from "../../shopify/types";
@@ -31,6 +33,10 @@ type CartContextType = {
   cart: Cart | undefined;
   updateCartItem: (merchandiseId: string, updateType: UpdateType) => void;
   addCartItem: (variant: ProductVariant, product: Product) => void;
+  // False until the stored cart has been read (first render after
+  // mount) - nothing should write the cart back to storage before then,
+  // or the empty placeholder cart would overwrite the saved one.
+  hydrated: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -217,7 +223,14 @@ function loadCartFromStorage(): Cart | undefined {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const initialCart = loadCartFromStorage() ?? createEmptyCart();
+  // The saved cart lives in localStorage, which the server can't see -
+  // so the server and the client's FIRST render both use an empty cart
+  // (otherwise "Cart (0)" vs "Cart (1)" is a hydration mismatch), and
+  // the stored cart is read from the first render after mount on.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const initialCart =
+    (hydrated ? loadCartFromStorage() : undefined) ?? createEmptyCart();
   const [optimisticCart, updateOptimisticCart] = useOptimistic(
     initialCart,
     cartReducer,
@@ -239,8 +252,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       cart: optimisticCart,
       updateCartItem,
       addCartItem,
+      hydrated,
     }),
-    [optimisticCart],
+    [optimisticCart, hydrated],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
