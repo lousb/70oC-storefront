@@ -560,9 +560,9 @@ export type Product = {
   >;
   description?: string;
   ingredients?: string;
-  howToUse?: ProductInfoBlockReference;
-  shipping?: ProductInfoBlockReference;
-  whereWeLive?: ProductInfoBlockReference;
+  howToUse?: string;
+  shipping?: string;
+  whereWeLive?: string;
   overwriteDefaultInformationFields?: "noDefaults" | "complementDefaults";
   productInformation?: Array<
     {
@@ -1295,9 +1295,9 @@ export type MORE_PRODUCTS_QUERY_RESULT = Array<{
   >;
   description?: string;
   ingredients?: string;
-  howToUse?: ProductInfoBlockReference;
-  shipping?: ProductInfoBlockReference;
-  whereWeLive?: ProductInfoBlockReference;
+  howToUse?: string;
+  shipping?: string;
+  whereWeLive?: string;
   overwriteDefaultInformationFields?: "complementDefaults" | "noDefaults";
   productInformation?: Array<
     {
@@ -1315,7 +1315,7 @@ export type MORE_PRODUCTS_QUERY_RESULT = Array<{
 
 // Source: data/sanity/queries.ts
 // Variable: PRODUCT_QUERY
-// Query: *[_type == "product" && store.slug.current == $slug] [0] {    _type,    _id,    _updatedAt,    _createdAt,    overwriteDefaultInformationFields,    "defaultProductInformation": *[ _type == 'settings'][0].defaultProductInformation,    productInformation,    category,    // "Pressure 001": this product's 1-based position within its own    // category, oldest first (by creation date in Sanity, i.e. when it    // first synced from Shopify). Products deleted in Shopify don't count.    "categoryPosition": select(      defined(category) => count(*[        _type == "product" &&        category == ^.category &&        defined(store.slug.current) &&        store.isDeleted != true &&        _createdAt < ^._createdAt      ]) + 1    ),    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{      "slug": store.slug.current,      "title": store.title,      category,    },    description,    ingredients,    "howToUse": howToUse->{title, content},    "shipping": shipping->{title, content},    "whereWeLive": whereWeLive->{title, content},    "status": select(_id in path("drafts.**") => "draft", "published"),    "name": coalesce(name, "Untitled Page"),    "slug": store.slug.current,   "gallery": gallery[] {      "mediaType": media.mediaType,      "image": select(media.mediaType == "image" => {        "_type": "image",        "asset": media.image.asset,        "crop": media.image.crop,        "hotspot": media.image.hotspot,        "alt": media.image.alt,        "lqip": media.image.asset->metadata.lqip,      }),      "video": select(media.mediaType == "video" => {        "playbackId": media.video.asset->playbackId,        "aspectRatio": media.video.asset->data.aspect_ratio,      }),      "featuredHover": featuredHover,    },    pageSeo{  _type,  "title": coalesce(title, ^.name),  description,  ogImage}  }
+// Query: *[_type == "product" && store.slug.current == $slug] [0] {    _type,    _id,    _updatedAt,    _createdAt,    overwriteDefaultInformationFields,    "defaultProductInformation": *[ _type == 'settings'][0].defaultProductInformation,    productInformation,    category,    // "Pressure 001": this product's 1-based position within its own    // category, oldest first (by creation date in Sanity, i.e. when it    // first synced from Shopify). Products deleted in Shopify don't count.    "categoryPosition": select(      defined(category) => count(*[        _type == "product" &&        category == ^.category &&        defined(store.slug.current) &&        store.isDeleted != true &&        _createdAt < ^._createdAt      ]) + 1    ),    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{      "slug": store.slug.current,      "title": store.title,      category,    },    description,    ingredients,    howToUse,    shipping,    whereWeLive,    "status": select(_id in path("drafts.**") => "draft", "published"),    "name": coalesce(name, "Untitled Page"),    "slug": store.slug.current,   "gallery": gallery[] {      "mediaType": media.mediaType,      "image": select(media.mediaType == "image" => {        "_type": "image",        "asset": media.image.asset,        "crop": media.image.crop,        "hotspot": media.image.hotspot,        "alt": media.image.alt,        "lqip": media.image.asset->metadata.lqip,      }),      "video": select(media.mediaType == "video" => {        "playbackId": media.video.asset->playbackId,        "aspectRatio": media.video.asset->data.aspect_ratio,      }),      "featuredHover": featuredHover,    },    pageSeo{  _type,  "title": coalesce(title, ^.name),  description,  ogImage}  }
 export type PRODUCT_QUERY_RESULT = {
   _type: "product";
   _id: string;
@@ -1355,18 +1355,9 @@ export type PRODUCT_QUERY_RESULT = {
   }> | null;
   description: string | null;
   ingredients: string | null;
-  howToUse: {
-    title: string;
-    content: BlockContent | null;
-  } | null;
-  shipping: {
-    title: string;
-    content: BlockContent | null;
-  } | null;
-  whereWeLive: {
-    title: string;
-    content: BlockContent | null;
-  } | null;
+  howToUse: string | null;
+  shipping: string | null;
+  whereWeLive: string | null;
   status: "draft" | "published";
   name: "Untitled Page";
   slug: string | null;
@@ -1626,7 +1617,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "collection" && defined(store.slug.current) && !store.isDeleted] | order(date desc, _updatedAt desc) {\n    ...,\n  }\n': ALL_COLLECTIONS_QUERY_RESULT;
     '\n  *[_type == "product" && defined(store.slug.current) && !store.isDeleted] | order(store.title asc) {\n    _id,\n    "title": store.title,\n    "slug": store.slug.current,\n    category,\n    // Same within-category numbering as PRODUCT_QUERY\'s categoryPosition\n    // (oldest first), so cards and the product page show the same "001".\n    "categoryPosition": select(\n      defined(category) => count(*[\n        _type == "product" &&\n        category == ^.category &&\n        defined(store.slug.current) &&\n        store.isDeleted != true &&\n        _createdAt < ^._createdAt\n      ]) + 1\n    ),\n    "price": store.priceRange.minVariantPrice,\n    "imageUrl": coalesce(gallery[0].media.image.asset->url, store.previewImageUrl),\n  }\n': ALL_PRODUCTS_QUERY_RESULT;
     '\n  *[_type == "product" && _id != $skip && defined(store.slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    ...,\n  }\n': MORE_PRODUCTS_QUERY_RESULT;
-    '\n  *[_type == "product" && store.slug.current == $slug] [0] {\n    _type,\n    _id,\n    _updatedAt,\n    _createdAt,\n    overwriteDefaultInformationFields,\n    "defaultProductInformation": *[ _type == \'settings\'][0].defaultProductInformation,\n    productInformation,\n    category,\n    // "Pressure 001": this product\'s 1-based position within its own\n    // category, oldest first (by creation date in Sanity, i.e. when it\n    // first synced from Shopify). Products deleted in Shopify don\'t count.\n    "categoryPosition": select(\n      defined(category) => count(*[\n        _type == "product" &&\n        category == ^.category &&\n        defined(store.slug.current) &&\n        store.isDeleted != true &&\n        _createdAt < ^._createdAt\n      ]) + 1\n    ),\n    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{\n      "slug": store.slug.current,\n      "title": store.title,\n      category,\n    },\n    description,\n    ingredients,\n    "howToUse": howToUse->{title, content},\n    "shipping": shipping->{title, content},\n    "whereWeLive": whereWeLive->{title, content},\n    "status": select(_id in path("drafts.**") => "draft", "published"),\n    "name": coalesce(name, "Untitled Page"),\n    "slug": store.slug.current,\n   "gallery": gallery[] {\n      "mediaType": media.mediaType,\n      "image": select(media.mediaType == "image" => {\n        "_type": "image",\n        "asset": media.image.asset,\n        "crop": media.image.crop,\n        "hotspot": media.image.hotspot,\n        "alt": media.image.alt,\n        "lqip": media.image.asset->metadata.lqip,\n      }),\n      "video": select(media.mediaType == "video" => {\n        "playbackId": media.video.asset->playbackId,\n        "aspectRatio": media.video.asset->data.aspect_ratio,\n      }),\n      "featuredHover": featuredHover,\n    },\n    pageSeo{\n  _type,\n  "title": coalesce(title, ^.name),\n  description,\n  ogImage\n}\n  }\n': PRODUCT_QUERY_RESULT;
+    '\n  *[_type == "product" && store.slug.current == $slug] [0] {\n    _type,\n    _id,\n    _updatedAt,\n    _createdAt,\n    overwriteDefaultInformationFields,\n    "defaultProductInformation": *[ _type == \'settings\'][0].defaultProductInformation,\n    productInformation,\n    category,\n    // "Pressure 001": this product\'s 1-based position within its own\n    // category, oldest first (by creation date in Sanity, i.e. when it\n    // first synced from Shopify). Products deleted in Shopify don\'t count.\n    "categoryPosition": select(\n      defined(category) => count(*[\n        _type == "product" &&\n        category == ^.category &&\n        defined(store.slug.current) &&\n        store.isDeleted != true &&\n        _createdAt < ^._createdAt\n      ]) + 1\n    ),\n    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{\n      "slug": store.slug.current,\n      "title": store.title,\n      category,\n    },\n    description,\n    ingredients,\n    howToUse,\n    shipping,\n    whereWeLive,\n    "status": select(_id in path("drafts.**") => "draft", "published"),\n    "name": coalesce(name, "Untitled Page"),\n    "slug": store.slug.current,\n   "gallery": gallery[] {\n      "mediaType": media.mediaType,\n      "image": select(media.mediaType == "image" => {\n        "_type": "image",\n        "asset": media.image.asset,\n        "crop": media.image.crop,\n        "hotspot": media.image.hotspot,\n        "alt": media.image.alt,\n        "lqip": media.image.asset->metadata.lqip,\n      }),\n      "video": select(media.mediaType == "video" => {\n        "playbackId": media.video.asset->playbackId,\n        "aspectRatio": media.video.asset->data.aspect_ratio,\n      }),\n      "featuredHover": featuredHover,\n    },\n    pageSeo{\n  _type,\n  "title": coalesce(title, ^.name),\n  description,\n  ogImage\n}\n  }\n': PRODUCT_QUERY_RESULT;
     '\n  *[_type == "product" && store.slug.current == $slug] [0] {\n    _type,\n    _id,\n    store\n  }\n': PRODUCT_METADATA_QUERY_RESULT;
     '\n  *[_type == "product" && defined(store.slug.current)]\n  {"slug": store.slug.current}\n': ALL_PRODUCT_PAGES_SLUGS_RESULT;
     '\n  *[_type == "collection" && defined(store.slug.current)]\n  {"slug": store.slug.current}\n': ALL_COLLECTION_PAGES_SLUGS_RESULT;

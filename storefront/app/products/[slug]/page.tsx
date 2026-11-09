@@ -197,17 +197,21 @@ export default async function Page(props: Props) {
       {
         key: "ingredients",
         title: "Ingredients",
-        content: <p>{productPage?.ingredients || ACCORDION_PLACEHOLDER}</p>,
+        content: (
+          <p style={{ whiteSpace: "pre-line" }}>
+            {productPage?.ingredients || ACCORDION_PLACEHOLDER}
+          </p>
+        ),
       },
     ],
     [
       {
         key: "how-to-use",
         title: "How To Use",
-        content: productPage?.howToUse?.content ? (
-          <CustomPortableText value={productPage.howToUse.content as any} />
-        ) : (
-          <p>{ACCORDION_PLACEHOLDER}</p>
+        content: (
+          <p style={{ whiteSpace: "pre-line" }}>
+            {productPage?.howToUse || ACCORDION_PLACEHOLDER}
+          </p>
         ),
       },
     ],
@@ -215,10 +219,10 @@ export default async function Page(props: Props) {
       {
         key: "shipping",
         title: "Shipping",
-        content: productPage?.shipping?.content ? (
-          <CustomPortableText value={productPage.shipping.content as any} />
-        ) : (
-          <p>{ACCORDION_PLACEHOLDER}</p>
+        content: (
+          <p style={{ whiteSpace: "pre-line" }}>
+            {productPage?.shipping || ACCORDION_PLACEHOLDER}
+          </p>
         ),
       },
     ],
@@ -226,12 +230,10 @@ export default async function Page(props: Props) {
       {
         key: "where-we-live",
         title: "Where We Live",
-        content: productPage?.whereWeLive?.content ? (
-          <CustomPortableText
-            value={productPage.whereWeLive.content as any}
-          />
-        ) : (
-          <p>{ACCORDION_PLACEHOLDER}</p>
+        content: (
+          <p style={{ whiteSpace: "pre-line" }}>
+            {productPage?.whereWeLive || ACCORDION_PLACEHOLDER}
+          </p>
         ),
       },
     ],

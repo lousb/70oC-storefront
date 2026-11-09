@@ -90,22 +90,22 @@ export const product = defineType({
     defineField({
       name: "howToUse",
       title: "How To Use",
-      type: "reference",
-      to: [{ type: "productInfoBlock" }],
+      type: "text",
+      rows: 4,
       group: "editorial",
     }),
     defineField({
       name: "shipping",
       title: "Shipping",
-      type: "reference",
-      to: [{ type: "productInfoBlock" }],
+      type: "text",
+      rows: 4,
       group: "editorial",
     }),
     defineField({
       name: "whereWeLive",
       title: "Where We Live",
-      type: "reference",
-      to: [{ type: "productInfoBlock" }],
+      type: "text",
+      rows: 4,
       group: "editorial",
     }),
     defineField({
