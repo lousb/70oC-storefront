@@ -2,7 +2,8 @@ import { defineField, defineType } from "sanity";
 
 /**
  * Shared shape for each of the 6 fixed Home sections (Pressure, Flow, Momentum,
- * Repetition, Balance, Bloom). The section name is locked and read-only here
+ * Repetition, Balance, Bloom). `anchorName` is the editable display name
+ * used across the storefront. The section name (icon key) is locked and read-only here
  * so editors can't rename or mismatch a section — its value is one of the
  * upper-case HOME_CATEGORIES codes (e.g. "PRESSURE") set by the migration/
  * initialValue, kept upper-case to match what the rest of the app matches
@@ -22,11 +23,20 @@ export const homeSection = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "anchorName",
+      title: "Anchor Name",
+      type: "string",
+      description:
+        "Slide 1 — the name shown for this anchor everywhere on the site (home, shop filters, product pages, cart). Leave blank to use the default name below. The icon stays fixed to this section.",
+      validation: (Rule) => Rule.max(40),
+    }),
+    defineField({
       name: "sectionName",
-      title: "Section Name",
+      title: "Icon (locked)",
       type: "string",
       readOnly: true,
-      description: "Slide 1 — locked, set automatically for this section.",
+      description:
+        "Which icon this section uses. Locked, because products and stories are tagged against it. Rename the anchor with Anchor Name above instead.",
     }),
     defineField({
       name: "sectionIntro",
@@ -58,17 +68,23 @@ export const homeSection = defineType({
   preview: {
     select: {
       sectionName: "sectionName",
+      anchorName: "anchorName",
       subtitle: "sectionIntro",
       media: "image1",
     },
-    prepare({ sectionName, subtitle, media }) {
+    prepare({ sectionName, anchorName, subtitle, media }) {
       // Studio-display only — reformats the stored upper-case code (e.g.
       // "PRESSURE") to Title Case ("Pressure"). The stored value itself
       // stays upper-case; nothing downstream that matches against it changes.
-      const title = sectionName
+      const iconName = sectionName
         ? sectionName.charAt(0) + sectionName.slice(1).toLowerCase()
         : "Untitled";
-      return { title, subtitle, media };
+      const title = anchorName?.trim() || iconName;
+      return {
+        title: title === iconName ? title : `${title} (${iconName} icon)`,
+        subtitle,
+        media,
+      };
     },
   },
 });

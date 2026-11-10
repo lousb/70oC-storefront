@@ -15,6 +15,7 @@ import {
   SETTINGS_QUERY,
 } from "../data/sanity/queries";
 import type { ProductAnchorMap } from "./_cart/product-anchors";
+import { getAnchors, anchorLabel } from "../lib/anchors";
 import { resolveOpenGraphImage } from "../sanity/utils";
 import { handleError } from "./client-utils";
 
@@ -145,21 +146,11 @@ export default async function RootLayout({
   );
 }
 
-// Display labels for the locked upper-case category values products
-// store (e.g. "PRESSURE") - same lookup as app/products/page.tsx.
-const ANCHOR_LABELS: Record<string, string> = {
-  PRESSURE: "Pressure",
-  FLOW: "Flow",
-  MOMENTUM: "Momentum",
-  REPETITION: "Repetition",
-  BALANCE: "Balance",
-  BLOOM: "Bloom",
-};
-
 export async function Header() {
-  const [{ data: settings }, { data: products }] = await Promise.all([
+  const [{ data: settings }, { data: products }, anchors] = await Promise.all([
     sanityFetch({ query: SETTINGS_QUERY }),
     sanityFetch({ query: ALL_PRODUCTS_QUERY, stega: false }),
+    getAnchors(),
   ]);
 
   // Shopify handle -> "Pressure" / "001", for the cart's item lines.
@@ -167,7 +158,7 @@ export async function Header() {
   for (const product of products ?? []) {
     if (!product.slug || !product.category) continue;
     productAnchors[product.slug] = {
-      anchor: ANCHOR_LABELS[product.category] ?? product.category,
+      anchor: anchorLabel(anchors, product.category) ?? product.category,
       index: product.categoryPosition
         ? String(product.categoryPosition).padStart(3, "0")
         : "",

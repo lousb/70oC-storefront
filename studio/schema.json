@@ -751,6 +751,13 @@
           },
           "optional": false
         },
+        "anchorName": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
         "sectionName": {
           "type": "objectAttribute",
           "value": {
@@ -2215,6 +2222,58 @@
     }
   },
   {
+    "name": "productInfoBlock",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_type": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string",
+          "value": "productInfoBlock"
+        }
+      },
+      "_createdAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_updatedAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_rev": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": false
+      },
+      "content": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "blockContent"
+        },
+        "optional": true
+      }
+    }
+  },
+  {
     "name": "post",
     "type": "document",
     "attributes": {
@@ -3020,36 +3079,6 @@
     }
   },
   {
-    "type": "type",
-    "name": "productInfoBlock.reference",
-    "value": {
-      "type": "object",
-      "attributes": {
-        "_ref": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          }
-        },
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "reference"
-          }
-        },
-        "_weak": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "boolean"
-          },
-          "optional": true
-        }
-      },
-      "dereferencesTo": "productInfoBlock"
-    }
-  },
-  {
     "name": "product",
     "type": "document",
     "attributes": {
@@ -3172,24 +3201,21 @@
       "howToUse": {
         "type": "objectAttribute",
         "value": {
-          "type": "inline",
-          "name": "productInfoBlock.reference"
+          "type": "string"
         },
         "optional": true
       },
       "shipping": {
         "type": "objectAttribute",
         "value": {
-          "type": "inline",
-          "name": "productInfoBlock.reference"
+          "type": "string"
         },
         "optional": true
       },
       "whereWeLive": {
         "type": "objectAttribute",
         "value": {
-          "type": "inline",
-          "name": "productInfoBlock.reference"
+          "type": "string"
         },
         "optional": true
       },
@@ -3338,58 +3364,6 @@
           },
           "optional": true
         }
-      }
-    }
-  },
-  {
-    "name": "productInfoBlock",
-    "type": "document",
-    "attributes": {
-      "_id": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        }
-      },
-      "_type": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string",
-          "value": "productInfoBlock"
-        }
-      },
-      "_createdAt": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        }
-      },
-      "_updatedAt": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        }
-      },
-      "_rev": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        }
-      },
-      "title": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "string"
-        },
-        "optional": false
-      },
-      "content": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "inline",
-          "name": "blockContent"
-        },
-        "optional": true
       }
     }
   },

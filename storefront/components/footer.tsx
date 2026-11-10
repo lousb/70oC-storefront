@@ -3,6 +3,7 @@ import Newsletter from "./newsletter";
 import FooterIconRow from "./footer-icon-row";
 import { sanityFetch } from "../data/sanity";
 import { SETTINGS_QUERY } from "../data/sanity/queries";
+import { getAnchors } from "../lib/anchors";
 import s from "./footer.module.css";
 
 // Info links are 4 fixed, named fields in the schema (not a repeater), so
@@ -36,9 +37,10 @@ function Placeholder({ children }: { children: React.ReactNode }) {
 // position: sticky "cover the previous section" effect, since removed -
 // data-snap-section is the only thing it still gates.)
 export async function Footer({ sticky = true }: { sticky?: boolean } = {}) {
-  const { data: settings } = await sanityFetch({
-    query: SETTINGS_QUERY,
-  });
+  const [{ data: settings }, anchors] = await Promise.all([
+    sanityFetch({ query: SETTINGS_QUERY }),
+    getAnchors(),
+  ]);
 
   const footer = settings?.footer;
   const shopLinks = footer?.shopLinks ?? [];
@@ -50,7 +52,7 @@ export async function Footer({ sticky = true }: { sticky?: boolean } = {}) {
       className={s.footer}
       data-snap-section={sticky ? "" : undefined}
     >
-      <FooterIconRow />
+      <FooterIconRow labels={anchors.labels} />
 
       <div className={`${s.section} ${s.shop}`}>
         <h4 className={s.label}>Shop</h4>

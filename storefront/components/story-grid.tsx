@@ -4,16 +4,14 @@ import { useState } from "react";
 import { StoryCard, type DemoStory } from "./story-card";
 import s from "./story-grid.module.css";
 
-const ANCHORS = [
-  "Pressure",
-  "Flow",
-  "Momentum",
-  "Repetition",
-  "Balance",
-  "Bloom",
-];
-
-export function StoryGrid({ stories }: { stories: DemoStory[] }) {
+export function StoryGrid({
+  stories,
+  anchors: ANCHORS,
+}: {
+  stories: DemoStory[];
+  /** Anchor display names, in Home order (see lib/anchors.ts). */
+  anchors: string[];
+}) {
   const [anchor, setAnchor] = useState<string | null>(null);
   const [anchorOpen, setAnchorOpen] = useState(false);
   const [topic, setTopic] = useState<string | null>(null);

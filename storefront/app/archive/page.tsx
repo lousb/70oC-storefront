@@ -1,15 +1,7 @@
 import { StoryGrid } from "../../components/story-grid";
 import { pickRandomTones } from "../../lib/demo-tones";
 import type { DemoStory } from "../../components/story-card";
-
-const ANCHORS = [
-  "Pressure",
-  "Flow",
-  "Momentum",
-  "Repetition",
-  "Balance",
-  "Bloom",
-];
+import { getAnchors } from "../../lib/anchors";
 
 const TOPICS = ["Spaces", "Practitioner Spotlight"];
 
@@ -28,9 +20,9 @@ const DEMO_MONTHS = [
 // the Sanity title field until real stories exist. Colors are
 // randomized per request in this Server Component, then passed down as
 // data, so there's no client/server hydration mismatch.
-function getDemoStories(): DemoStory[] {
-  const colors = pickRandomTones(ANCHORS.length);
-  return ANCHORS.map((category, i) => ({
+function getDemoStories(anchorNames: string[]): DemoStory[] {
+  const colors = pickRandomTones(anchorNames.length);
+  return anchorNames.map((category, i) => ({
     id: `demo-story-${i}`,
     slug: `demo-story-${i}`,
     date: DEMO_MONTHS[i],
@@ -43,12 +35,13 @@ function getDemoStories(): DemoStory[] {
   }));
 }
 
-export default function Page() {
-  const stories = getDemoStories();
+export default async function Page() {
+  const anchors = await getAnchors();
+  const stories = getDemoStories(anchors.ordered);
 
   return (
     <div>
-      <StoryGrid stories={stories} />
+      <StoryGrid stories={stories} anchors={anchors.ordered} />
     </div>
   );
 }

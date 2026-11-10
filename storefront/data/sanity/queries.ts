@@ -98,6 +98,7 @@ export type LinkFieldsType = {
 
 const homeSectionFields = /* groq */ `
   sectionName,
+  anchorName,
   "image1": image1{asset, crop, hotspot, alt, "lqip": asset->metadata.lqip},
   "image3": image3{asset, crop, hotspot, alt, "lqip": asset->metadata.lqip},
   sectionIntro,
@@ -149,6 +150,12 @@ export const HOME_QUERY = defineQuery(`
     "sections": sections[]{${homeSectionFields}},
     pageSeo{${pageSeoFields}}
   }
+`);
+
+// Editable display names for the 6 anchors, keyed by their locked icon
+// code (sectionName, e.g. "PRESSURE"), in the editor's Home order.
+export const ANCHOR_NAMES_QUERY = defineQuery(`
+  *[_type == 'home'][0].sections[]{sectionName, anchorName}
 `);
 
 export const SHOP_QUERY = defineQuery(`

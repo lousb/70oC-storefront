@@ -63,7 +63,10 @@ export default async function Page() {
         return (
           <AnchorCarouselSection
             key={anchor.slug}
-            categoryTitle={anchor.title}
+            categoryTitle={
+              (section as { anchorName?: string | null }).anchorName?.trim() ||
+              anchor.title
+            }
             categorySlug={anchor.slug}
             // Same _key: string vs null looseness footer.tsx already lives
             // with when passing this query result's link field along.

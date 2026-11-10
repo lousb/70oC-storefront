@@ -4,15 +4,6 @@ import { useEffect, useState } from "react";
 import { ProductCard, type ListedProduct } from "./product-card";
 import s from "./product-grid.module.css";
 
-const ANCHORS = [
-  "Pressure",
-  "Flow",
-  "Momentum",
-  "Repetition",
-  "Balance",
-  "Bloom",
-];
-
 const VIEW_OPTIONS = [1, 2, 3] as const;
 type View = (typeof VIEW_OPTIONS)[number];
 
@@ -23,7 +14,14 @@ const MOBILE_BREAKPOINT = 768; // matches the @media (max-width: 768px) below
 
 const ROW_STAGGER_MS = 60; // delay between each row's reveal starting
 
-export function ProductGrid({ products }: { products: ListedProduct[] }) {
+export function ProductGrid({
+  products,
+  anchors: ANCHORS,
+}: {
+  products: ListedProduct[];
+  /** Anchor display names, in Home order (see lib/anchors.ts). */
+  anchors: string[];
+}) {
   const [view, setView] = useState<View>(1);
   const [anchor, setAnchor] = useState<string | null>(null);
   const [anchorOpen, setAnchorOpen] = useState(false);

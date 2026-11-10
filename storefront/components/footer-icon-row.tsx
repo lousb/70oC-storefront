@@ -22,7 +22,12 @@ const CATEGORY_ICONS = [
 // (it awaits the Sanity fetch), so this bit of interactivity has to live
 // separately. The reveal is CSS-only beyond the "in view" class: on
 // mobile, .iconRowInView has no matching rule, so this is a no-op there.
-export default function FooterIconRow() {
+export default function FooterIconRow({
+  labels = {},
+}: {
+  /** Icon key ("PRESSURE") -> editable anchor name, from lib/anchors.ts. */
+  labels?: Record<string, string>;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
 
@@ -54,7 +59,7 @@ export default function FooterIconRow() {
         <a
           key={category.slug}
           href={`/#${category.slug}`}
-          aria-label={category.title}
+          aria-label={labels[category.slug.toUpperCase()] ?? category.title}
           className={s.iconLink}
           style={{ transitionDelay: `${i * 80}ms` }}
         >

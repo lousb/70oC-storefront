@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 import { HOME_CATEGORIES } from "../../constants";
+import { AnchorCategoryInput } from "../../components/inputs/anchor-category-input";
 
 export const post = defineType({
   name: "post",
@@ -79,6 +80,7 @@ export const post = defineType({
         list: HOME_CATEGORIES,
         layout: "dropdown",
       },
+      components: { input: AnchorCategoryInput },
     }),
     defineField({
       name: "excerpt",

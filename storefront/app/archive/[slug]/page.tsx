@@ -4,6 +4,8 @@ import { POST_QUERY, ALL_POST_SLUGS } from "../../../data/sanity/queries";
 import { BlogPageBuilder } from "../../../components/blog-page-builder";
 import { StoryMedia, type StoryMediaValue } from "../../../components/story-media";
 import s from "../../../components/story-article.module.css";
+import { stegaClean } from "@sanity/client/stega";
+import { getAnchors, anchorLabel } from "../../../lib/anchors";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -26,12 +28,20 @@ function formatStoryDate(date?: string | null) {
 
 export default async function Page(props: Props) {
   const params = await props.params;
-  const { data } = await sanityFetch({ query: POST_QUERY, params });
+  const [{ data }, anchors] = await Promise.all([
+    sanityFetch({ query: POST_QUERY, params }),
+    getAnchors(),
+  ]);
   // Typegen output catches up on the next `npm run dev` (predev runs
   // typegen) - typed loosely here so the new fields don't block that.
   const post = data as any;
 
   if (!post?._id) return notFound();
+
+  const categoryLabel = anchorLabel(
+    anchors,
+    post.category ? stegaClean(post.category) : null,
+  );
 
   const blocks: any[] = post.pageBuilder ?? [];
 
@@ -96,7 +106,7 @@ export default async function Page(props: Props) {
         )}
 
         <h1 className={s.title}>{post.title}</h1>
-        {post.category && <p className={s.category}>{post.category}</p>}
+        {categoryLabel && <p className={s.category}>{categoryLabel}</p>}
         {(credits || dateLabel) && (
           <p className={s.credits}>
             {credits}

@@ -3,6 +3,7 @@ import { defineField, defineType } from "sanity";
 import { ShopifyIcon } from "../../components/shopify-icon";
 import { ShopifyDocumentStatus } from "../../components/shopify/shopify-document-status";
 import { HOME_CATEGORIES } from "../../constants";
+import { AnchorCategoryInput } from "../../components/inputs/anchor-category-input";
 import { getPriceRange } from "../../utils/get-price-range";
 
 const GROUPS = [
@@ -46,6 +47,7 @@ export const product = defineType({
         list: HOME_CATEGORIES,
         layout: "dropdown",
       },
+      components: { input: AnchorCategoryInput },
     }),
     defineField({
       name: "relatedProducts",

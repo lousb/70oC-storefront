@@ -19,23 +19,12 @@ import { Gallery } from "./gallery";
 import { AccordionEntry } from "./accordion";
 import { ProductSection } from "./product-section";
 import { ProductDetailsPanel } from "./product-details-panel";
+import { getAnchors, anchorLabel } from "../../../lib/anchors";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-// Mirrors studio/src/schema-types/constants.ts HOME_CATEGORIES — the two
-// workspaces don't share code, so this small display-label lookup is
-// duplicated here the same way app/products/page.tsx already duplicates the
-// anchor list.
-const CATEGORY_LABELS: Record<string, string> = {
-  PRESSURE: "Pressure",
-  FLOW: "Flow",
-  MOMENTUM: "Momentum",
-  REPETITION: "Repetition",
-  BALANCE: "Balance",
-  BLOOM: "Bloom",
-};
 
 
 export async function generateStaticParams() {
@@ -112,13 +101,13 @@ export default async function Page(props: Props) {
   // rendered text in Presentation mode to jump to its Studio field. That's
   // only safe for text actually rendered as visible copy - `category` is
   // used to build a URL/filename (categoryIconSlug below) and as an exact
-  // object-key lookup (CATEGORY_LABELS), so it has to be cleaned first or
+  // object-key lookup (anchor labels), so it has to be cleaned first or
   // the invisible characters silently break both (see sanity-image.tsx for
   // the same fix already applied to image alt text).
   const cleanCategory = productPage?.category
     ? stegaClean(productPage.category)
     : null;
-  const category = cleanCategory ? CATEGORY_LABELS[cleanCategory] : null;
+  const category = anchorLabel(await getAnchors(), cleanCategory);
   // Same icon set/convention as components/anchor-carousel-section.tsx's
   // intro-view icon (public/icons/02Icons/<slug>.png).
   const categoryIconSlug = cleanCategory?.toLowerCase();

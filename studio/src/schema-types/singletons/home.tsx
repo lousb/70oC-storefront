@@ -22,7 +22,7 @@ export const home = defineType({
       type: "array",
       of: [{ type: "homeSection" }],
       description:
-        "Drag to reorder — this is the order they'll appear in on the home page. Each section's own name is locked; you can't add, remove, or rename these.",
+        "Drag to reorder — this is the order they'll appear in on the home page. Rename an anchor with its Anchor Name field. The 6 sections (one per icon) can't be added or removed.",
       initialValue: HOME_CATEGORIES.map(({ value }) => ({
         sectionName: value,
       })),

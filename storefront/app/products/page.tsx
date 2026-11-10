@@ -4,24 +4,13 @@ import type { ListedProduct } from "../../components/product-card";
 import { sanityFetch } from "../../data/sanity/";
 import { ALL_PRODUCTS_QUERY, HOME_QUERY } from "../../data/sanity/queries";
 import { urlForImage } from "../../sanity/utils";
-
-// Mirrors HOME_CATEGORIES in studio/src/constants.ts — the two workspaces
-// don't share code, so this display-label lookup is duplicated here the
-// same way app/products/[slug]/page.tsx already does (category is stored
-// as the uppercase `value`, e.g. "PRESSURE", not the display title).
-const CATEGORY_LABELS: Record<string, string> = {
-  PRESSURE: "Pressure",
-  FLOW: "Flow",
-  MOMENTUM: "Momentum",
-  REPETITION: "Repetition",
-  BALANCE: "Balance",
-  BLOOM: "Bloom",
-};
+import { getAnchors, anchorLabel } from "../../lib/anchors";
 
 export default async function Page() {
-  const [{ data }, { data: home }] = await Promise.all([
+  const [{ data }, { data: home }, anchors] = await Promise.all([
     sanityFetch({ query: ALL_PRODUCTS_QUERY, stega: false }),
     sanityFetch({ query: HOME_QUERY, stega: false }),
+    getAnchors(),
   ]);
 
   // Hover state on each card: its anchor's Home section Image 1 (keyed by
@@ -46,7 +35,7 @@ export default async function Page() {
     index: product.categoryPosition
       ? String(product.categoryPosition).padStart(3, "0")
       : "",
-    category: product.category ? CATEGORY_LABELS[product.category] ?? product.category : "Uncategorised",
+    category: anchorLabel(anchors, product.category) ?? "Uncategorised",
     title: product.title ?? "Untitled",
     price: product.price,
     imageUrl: product.imageUrl,
@@ -60,7 +49,7 @@ export default async function Page() {
       {products.length === 0 ? (
         <p>No products yet.</p>
       ) : (
-        <ProductGrid products={products} />
+        <ProductGrid products={products} anchors={anchors.ordered} />
       )}
     </div>
   );
