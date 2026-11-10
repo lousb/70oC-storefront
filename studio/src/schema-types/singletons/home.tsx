@@ -22,7 +22,7 @@ export const home = defineType({
       type: "array",
       of: [{ type: "homeSection" }],
       description:
-        "Drag to reorder — this is the order they'll appear in on the home page. Rename an anchor with its Anchor Name field. The 6 sections (one per icon) can't be added or removed.",
+        "Drag to reorder — this is the order they'll appear in on the home page. Drag to reorder. Each anchor's name and icon can be changed inside it. The 6 anchors can't be added or removed.",
       initialValue: HOME_CATEGORIES.map(({ value }) => ({
         sectionName: value,
       })),
@@ -51,6 +51,18 @@ export const home = defineType({
             }
             if (duplicates.size > 0) {
               return `Duplicate section(s): ${[...duplicates].join(", ")}. Each of the 6 sections should appear exactly once.`;
+            }
+
+            // Each icon can only be used by one anchor (blank = its default).
+            const icons = sections.map(
+              (section: any) => section?.icon || section?.sectionName,
+            );
+            const dupIcons = icons.filter((icon, i) => icons.indexOf(icon) !== i);
+            if (dupIcons.length > 0) {
+              const names = [...new Set(dupIcons)].map(
+                (v: string) => v.charAt(0) + v.slice(1).toLowerCase(),
+              );
+              return `Icon used twice: ${names.join(", ")}. Each anchor needs its own icon.`;
             }
 
             return true;

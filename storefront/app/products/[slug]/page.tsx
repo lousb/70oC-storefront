@@ -19,7 +19,7 @@ import { Gallery } from "./gallery";
 import { AccordionEntry } from "./accordion";
 import { ProductSection } from "./product-section";
 import { ProductDetailsPanel } from "./product-details-panel";
-import { getAnchors, anchorLabel } from "../../../lib/anchors";
+import { getAnchors, anchorLabel, anchorIcon } from "../../../lib/anchors";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -107,10 +107,11 @@ export default async function Page(props: Props) {
   const cleanCategory = productPage?.category
     ? stegaClean(productPage.category)
     : null;
-  const category = anchorLabel(await getAnchors(), cleanCategory);
+  const anchors = await getAnchors();
+  const category = anchorLabel(anchors, cleanCategory);
   // Same icon set/convention as components/anchor-carousel-section.tsx's
   // intro-view icon (public/icons/02Icons/<slug>.png).
-  const categoryIconSlug = cleanCategory?.toLowerCase();
+  const categoryIconSlug = anchorIcon(anchors, cleanCategory) ?? undefined;
 
   // Related Products (Sanity, max 3) -> icon row under Add To Cart. The
   // query already drops refs with no slug/category; stegaClean because
@@ -120,7 +121,7 @@ export default async function Page(props: Props) {
       const slug = related?.slug ? stegaClean(related.slug) : null;
       const category = related?.category ? stegaClean(related.category) : null;
       return slug && category
-        ? [{ slug, title: related.title, iconSlug: category.toLowerCase() }]
+        ? [{ slug, title: related.title, iconSlug: anchorIcon(anchors, category)! }]
         : [];
     },
   );

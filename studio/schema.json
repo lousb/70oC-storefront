@@ -758,6 +758,39 @@
           },
           "optional": true
         },
+        "icon": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "union",
+            "of": [
+              {
+                "type": "string",
+                "value": "PRESSURE"
+              },
+              {
+                "type": "string",
+                "value": "FLOW"
+              },
+              {
+                "type": "string",
+                "value": "MOMENTUM"
+              },
+              {
+                "type": "string",
+                "value": "REPETITION"
+              },
+              {
+                "type": "string",
+                "value": "BALANCE"
+              },
+              {
+                "type": "string",
+                "value": "BLOOM"
+              }
+            ]
+          },
+          "optional": true
+        },
         "sectionName": {
           "type": "objectAttribute",
           "value": {

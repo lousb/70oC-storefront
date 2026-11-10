@@ -67,7 +67,9 @@ export default async function Page() {
               (section as { anchorName?: string | null }).anchorName?.trim() ||
               anchor.title
             }
-            categorySlug={anchor.slug}
+            categorySlug={(
+              (section as { icon?: string | null }).icon || anchor.slug
+            ).toLowerCase()}
             // Same _key: string vs null looseness footer.tsx already lives
             // with when passing this query result's link field along.
             data={section as any}

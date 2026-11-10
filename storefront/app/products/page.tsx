@@ -4,7 +4,7 @@ import type { ListedProduct } from "../../components/product-card";
 import { sanityFetch } from "../../data/sanity/";
 import { ALL_PRODUCTS_QUERY, HOME_QUERY } from "../../data/sanity/queries";
 import { urlForImage } from "../../sanity/utils";
-import { getAnchors, anchorLabel } from "../../lib/anchors";
+import { getAnchors, anchorLabel, anchorIcon } from "../../lib/anchors";
 
 export default async function Page() {
   const [{ data }, { data: home }, anchors] = await Promise.all([
@@ -40,7 +40,7 @@ export default async function Page() {
     price: product.price,
     imageUrl: product.imageUrl,
     hoverImageUrl: product.category ? anchorImages[product.category] ?? null : null,
-    iconSlug: product.category ? product.category.toLowerCase() : null,
+    iconSlug: anchorIcon(anchors, product.category),
     color: tones[i],
   }));
 

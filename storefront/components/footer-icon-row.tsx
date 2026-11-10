@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import s from "./footer.module.css";
+import type { AnchorItem } from "../lib/anchors";
 
 // Mirrors HOME_CATEGORIES in studio/src/constants.ts — see footer.tsx for
 // why this list is duplicated here rather than imported (storefront and
@@ -23,11 +24,14 @@ const CATEGORY_ICONS = [
 // separately. The reveal is CSS-only beyond the "in view" class: on
 // mobile, .iconRowInView has no matching rule, so this is a no-op there.
 export default function FooterIconRow({
-  labels = {},
+  items,
 }: {
-  /** Icon key ("PRESSURE") -> editable anchor name, from lib/anchors.ts. */
-  labels?: Record<string, string>;
+  /** Anchors in Home order with their editable name + icon (lib/anchors.ts). */
+  items?: AnchorItem[];
 }) {
+  const icons = items?.length
+    ? items.map((a) => ({ title: a.label, slug: a.key.toLowerCase(), icon: a.icon }))
+    : CATEGORY_ICONS.map((c) => ({ ...c, icon: c.slug }));
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
 
@@ -50,7 +54,7 @@ export default function FooterIconRow({
 
   return (
     <div ref={ref} className={`${s.iconRow} ${inView ? s.iconRowInView : ""}`}>
-      {CATEGORY_ICONS.map((category, i) => (
+      {icons.map((category, i) => (
         // Assumption: each icon links to its Home page section — adjust
         // once the real destination (e.g. a filtered shop view) is known.
         // Staggered opacity reveal - each icon's own transition-delay
@@ -59,12 +63,12 @@ export default function FooterIconRow({
         <a
           key={category.slug}
           href={`/#${category.slug}`}
-          aria-label={labels[category.slug.toUpperCase()] ?? category.title}
+          aria-label={category.title}
           className={s.iconLink}
           style={{ transitionDelay: `${i * 80}ms` }}
         >
           <img
-            src={`/icons/categories/${category.slug}.svg`}
+            src={`/icons/categories/${category.icon}.svg`}
             alt=""
             width={40}
             height={40}

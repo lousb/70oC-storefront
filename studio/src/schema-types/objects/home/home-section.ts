@@ -1,4 +1,6 @@
 import { defineField, defineType } from "sanity";
+import { HOME_CATEGORIES } from "../../../constants";
+import { AnchorIconInput } from "../../../components/inputs/anchor-icon-input";
 
 /**
  * Shared shape for each of the 6 fixed Home sections (Pressure, Flow, Momentum,
@@ -27,16 +29,27 @@ export const homeSection = defineType({
       title: "Anchor Name",
       type: "string",
       description:
-        "Slide 1 — the name shown for this anchor everywhere on the site (home, shop filters, product pages, cart). Leave blank to use the default name below. The icon stays fixed to this section.",
+        "Slide 1 — the name shown for this anchor everywhere on the site (home, shop filters, product pages, cart).",
       validation: (Rule) => Rule.max(40),
     }),
     defineField({
+      name: "icon",
+      title: "Icon",
+      type: "string",
+      description:
+        "Which icon this anchor uses across the site. Each icon can only be used once. Products and stories in this anchor keep their tag when you switch icons.",
+      options: { list: HOME_CATEGORIES, layout: "dropdown" },
+      components: { input: AnchorIconInput },
+    }),
+    defineField({
+      // Internal, permanent ID for this section. Products/stories store it
+      // as `category`, so it never changes — the editable name and icon
+      // above sit on top of it. Hidden to avoid confusion with the Icon.
       name: "sectionName",
-      title: "Icon (locked)",
+      title: "Section ID",
       type: "string",
       readOnly: true,
-      description:
-        "Which icon this section uses. Locked, because products and stories are tagged against it. Rename the anchor with Anchor Name above instead.",
+      hidden: true,
     }),
     defineField({
       name: "sectionIntro",
@@ -69,22 +82,16 @@ export const homeSection = defineType({
     select: {
       sectionName: "sectionName",
       anchorName: "anchorName",
-      subtitle: "sectionIntro",
+      icon: "icon",
       media: "image1",
     },
-    prepare({ sectionName, anchorName, subtitle, media }) {
+    prepare({ sectionName, anchorName, icon, media }) {
       // Studio-display only — reformats the stored upper-case code (e.g.
       // "PRESSURE") to Title Case ("Pressure"). The stored value itself
       // stays upper-case; nothing downstream that matches against it changes.
-      const iconName = sectionName
-        ? sectionName.charAt(0) + sectionName.slice(1).toLowerCase()
-        : "Untitled";
-      const title = anchorName?.trim() || iconName;
-      return {
-        title: title === iconName ? title : `${title} (${iconName} icon)`,
-        subtitle,
-        media,
-      };
+      const tc = (v?: string) => (v ? v.charAt(0) + v.slice(1).toLowerCase() : "");
+      const title = anchorName?.trim() || tc(sectionName) || "Untitled";
+      return { title, subtitle: `Icon: ${tc(icon || sectionName)}`, media };
     },
   },
 });

@@ -52,7 +52,7 @@ export async function Footer({ sticky = true }: { sticky?: boolean } = {}) {
       className={s.footer}
       data-snap-section={sticky ? "" : undefined}
     >
-      <FooterIconRow labels={anchors.labels} />
+      <FooterIconRow items={anchors.items} />
 
       <div className={`${s.section} ${s.shop}`}>
         <h4 className={s.label}>Shop</h4>
