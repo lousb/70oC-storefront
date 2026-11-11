@@ -941,6 +941,37 @@
   padding: 0 0 1.2em;
 }
 
+/* Smooth open/close for a review row's detail: animating grid rows
+   0fr -> 1fr gives a real height-to-auto transition, plus a fade. */
+.reviewDetailWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+
+.reviewDetailWrap[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease 0.08s;
+}
+
+.reviewDetailInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewDetailWrap,
+  .reviewDetailWrap[data-open="true"] {
+    transition: none;
+  }
+}
+
 .reviewMeta {
   display: flex;
   flex-wrap: wrap;

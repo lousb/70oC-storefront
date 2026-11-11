@@ -4,6 +4,7 @@ import { post } from "./documents/post";
 import { product } from "./documents/product";
 import { productInfoBlock } from "./documents/product-info-block";
 import { productVariant } from "./documents/product-variant";
+import { review } from "./documents/review";
 
 import { blockContent } from "./objects/editorial/block-content";
 import { contentRow } from "./objects/editorial/content-row";
@@ -57,6 +58,7 @@ export const schemaTypes = [
   product,
   productInfoBlock,
   productVariant,
+  review,
   // Objects — Editorial
   blockContent,
   contentRow,

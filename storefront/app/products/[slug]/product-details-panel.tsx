@@ -7,7 +7,7 @@ import { AddToCart } from "../../_cart/add-to-cart";
 import type { Product } from "../../../shopify/types";
 import { Accordion, type AccordionEntry } from "./accordion";
 import { ReviewsPanel } from "./reviews-panel";
-import { DEMO_RATING, DEMO_REVIEW_COUNT, formatRating } from "./reviews-data";
+import { type ReviewsData, ratingSummary } from "./reviews-data";
 import s from "./page.module.css";
 
 // A related product as shown in the small icon row below Add To Cart:
@@ -30,6 +30,7 @@ export function ProductDetailsPanel({
   categoryIconSlug,
   relatedProducts = [],
   product,
+  reviews,
 }: {
   category: string | null;
   categoryIndex: string | null;
@@ -41,6 +42,7 @@ export function ProductDetailsPanel({
   categoryIconSlug?: string | null;
   relatedProducts?: RelatedProductIcon[];
   product: Product;
+  reviews: ReviewsData;
 }) {
   const [reviewsOpen, setReviewsOpen] = useState(false);
   // Keeps the overlay mounted through its slide-out, and flips
@@ -195,7 +197,7 @@ export function ProductDetailsPanel({
             onClick={handleRatingClick}
             aria-expanded={reviewsOpen}
           >
-            {formatRating(DEMO_RATING)}/5 ({DEMO_REVIEW_COUNT} Reviews)
+            {ratingSummary(reviews)}
           </button>
 
           {descriptionNode}
@@ -260,17 +262,17 @@ export function ProductDetailsPanel({
             </p>
           </div>
           <p className={s.ratingLink}>
-            {formatRating(DEMO_RATING)}/5 ({DEMO_REVIEW_COUNT} Reviews)
+            {ratingSummary(reviews)}
           </p>
           </div>
-          <ReviewsPanel />
+          <ReviewsPanel data={reviews} />
         </div>
       )}
 
       {/* Mobile-only static section (hidden on desktop via CSS) — reached
           by the rating link scrolling to it above. */}
       <div id="reviews" className={s.reviewsSection}>
-        <ReviewsPanel />
+        <ReviewsPanel data={reviews} />
       </div>
     </>
   );

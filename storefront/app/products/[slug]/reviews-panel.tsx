@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import s from "./page.module.css";
-import { DEMO_REVIEWS, DEMO_RATING, DEMO_REVIEW_COUNT, formatRating } from "./reviews-data";
+import { type ReviewsData, ratingSummary } from "./reviews-data";
 import { ReviewRow } from "./review-row";
 
 // Shared between the mobile static "Reviews" section (always in normal
@@ -10,8 +10,8 @@ import { ReviewRow } from "./review-row";
 // replaces Add To Cart / icon row / accordion when the rating link is
 // clicked — same table, same expand-on-click rows, per
 // Set-Up-Components/ProductPage's Reviews Flyout reference.
-export function ReviewsPanel() {
-  const [openName, setOpenName] = useState<string | null>(null);
+export function ReviewsPanel({ data }: { data: ReviewsData }) {
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
     <div className={s.reviewsPanel}>
@@ -21,10 +21,14 @@ export function ReviewsPanel() {
           the rating line toggles the flyout. */}
       <div className={s.reviewsPanelHead}>
         <p className={s.reviewsHeading}>
-          {formatRating(DEMO_RATING)}/5 ({DEMO_REVIEW_COUNT} Reviews)
+          {ratingSummary(data)}
         </p>
       </div>
 
+      {data.count === 0 ? (
+        <p className={s.reviewBody}>No reviews yet.</p>
+      ) : (
+      <>
       <div className={s.reviewsHeaderRow} aria-hidden="true">
         <span>Name</span>
         <span>Anchor</span>
@@ -34,17 +38,17 @@ export function ReviewsPanel() {
       </div>
 
       <div className={s.reviewsList}>
-        {DEMO_REVIEWS.map((review) => (
+        {data.reviews.map((review) => (
           <ReviewRow
-            key={review.name}
+            key={review.id}
             review={review}
-            isOpen={openName === review.name}
-            onToggle={() =>
-              setOpenName(openName === review.name ? null : review.name)
-            }
+            isOpen={openId === review.id}
+            onToggle={() => setOpenId(openId === review.id ? null : review.id)}
           />
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }

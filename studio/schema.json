@@ -2202,6 +2202,203 @@
     }
   },
   {
+    "name": "review",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_type": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string",
+          "value": "review"
+        }
+      },
+      "_createdAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_updatedAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_rev": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "name": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": false
+      },
+      "product": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "product.reference"
+        },
+        "optional": false
+      },
+      "variant": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "productVariant.reference"
+        },
+        "optional": true
+      },
+      "rating": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "number",
+              "value": 5
+            },
+            {
+              "type": "number",
+              "value": 4.5
+            },
+            {
+              "type": "number",
+              "value": 4
+            },
+            {
+              "type": "number",
+              "value": 3.5
+            },
+            {
+              "type": "number",
+              "value": 3
+            },
+            {
+              "type": "number",
+              "value": 2.5
+            },
+            {
+              "type": "number",
+              "value": 2
+            },
+            {
+              "type": "number",
+              "value": 1.5
+            },
+            {
+              "type": "number",
+              "value": 1
+            }
+          ]
+        },
+        "optional": false
+      },
+      "body": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": false
+      },
+      "age": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "18-24"
+            },
+            {
+              "type": "string",
+              "value": "25-34"
+            },
+            {
+              "type": "string",
+              "value": "35-44"
+            },
+            {
+              "type": "string",
+              "value": "45-54"
+            },
+            {
+              "type": "string",
+              "value": "55-64"
+            },
+            {
+              "type": "string",
+              "value": "65+"
+            }
+          ]
+        },
+        "optional": true
+      },
+      "hairLength": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "Short"
+            },
+            {
+              "type": "string",
+              "value": "Medium"
+            },
+            {
+              "type": "string",
+              "value": "Long"
+            }
+          ]
+        },
+        "optional": true
+      },
+      "hairType": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
+      "heatType": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "Traditional"
+            },
+            {
+              "type": "string",
+              "value": "Infrared"
+            }
+          ]
+        },
+        "optional": true
+      },
+      "date": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      }
+    }
+  },
+  {
     "name": "productVariant",
     "type": "document",
     "attributes": {

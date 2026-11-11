@@ -10,6 +10,7 @@ import {
   ALL_PRODUCT_PAGES_SLUGS,
   PRODUCT_METADATA_QUERY,
   PRODUCT_QUERY,
+  ALL_REVIEWS_QUERY,
 } from "../../../data/sanity/queries";
 import { getProduct } from "../../../data/shopify";
 import { resolveOpenGraphImage } from "../../../sanity/utils";
@@ -93,8 +94,7 @@ export default async function Page(props: Props) {
   // Set-Up-Components/ProductPage's [DESKTOP]/[MOBILE] IPP 1A references
   // (Category + Title / Price, description, Add to Cart, then the
   // Details/Ingredients/How To Use/Shipping/Where We Live accordion). The
-  // "Reviews Flyout" variant and star-rating summary are out of scope for
-  // now — no real review data exists yet.
+  // Reviews come from Sanity (site-wide) — see `reviews` below.
 
   // Sanity's Visual Editing ("stega") encoding embeds invisible characters
   // into string field values returned by this query, so editors can click
@@ -133,6 +133,48 @@ export default async function Page(props: Props) {
     cleanCategory && productPage?.categoryPosition
       ? String(productPage.categoryPosition).padStart(3, "0")
       : null;
+
+  // Reviews: site-wide list (same on every product page). Each row's
+  // Anchor + Number are the reviewed product's own category/icon/"001".
+  const { data: allReviews } = await sanityFetch({
+    query: ALL_REVIEWS_QUERY,
+    stega: false,
+  });
+  const reviewList = (allReviews ?? []).flatMap((r) => {
+    if (!r.name || typeof r.rating !== "number" || !r.body) return [];
+    const key = r.category ? stegaClean(r.category) : null;
+    return [
+      {
+        id: r._id,
+        name: r.name,
+        product: [r.productTitle, r.variantTitle]
+          .filter((t) => t && t !== "Default Title")
+          .join(", "),
+        rating: r.rating,
+        body: r.body,
+        age: r.age ?? null,
+        hairLength: r.hairLength ?? null,
+        hairType: r.hairType ?? null,
+        heatType: r.heatType ?? null,
+        anchor: {
+          label: anchorLabel(anchors, key),
+          iconSlug: anchorIcon(anchors, key),
+          number: key && r.categoryPosition
+            ? String(r.categoryPosition).padStart(3, "0")
+            : null,
+        },
+      },
+    ];
+  });
+  const reviews = {
+    reviews: reviewList,
+    count: reviewList.length,
+    average: reviewList.length
+      ? Math.round(
+          (reviewList.reduce((sum, r) => sum + r.rating, 0) / reviewList.length) * 10,
+        ) / 10
+      : null,
+  };
 
   // "Details" is a flexible, possibly-multi-entry section: per-product
   // productInformation, optionally complemented by the site-wide defaults
@@ -278,6 +320,7 @@ export default async function Page(props: Props) {
                 categoryIconSlug={categoryIconSlug}
                 relatedProducts={relatedProducts}
                 product={product}
+                reviews={reviews}
               />
             }
             categoryIconSlug={categoryIconSlug}

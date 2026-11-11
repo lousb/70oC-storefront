@@ -1,7 +1,7 @@
 "use client";
 
 import s from "./page.module.css";
-import { type DemoReview, DEMO_REVIEW_BODY, formatRating } from "./reviews-data";
+import { type Review, formatRating } from "./reviews-data";
 
 // One row of the reviews table — collapsed shows Name / Anchor (category +
 // its icon) / Number / Product / Rating, matching
@@ -14,10 +14,16 @@ export function ReviewRow({
   isOpen,
   onToggle,
 }: {
-  review: DemoReview;
+  review: Review;
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const meta: [string, string][] = [];
+  if (review.age) meta.push(["Age", review.age]);
+  if (review.hairLength) meta.push(["Hair Length", review.hairLength]);
+  if (review.hairType) meta.push(["Hair Type", review.hairType]);
+  if (review.heatType) meta.push(["Heat Type", review.heatType]);
+
   return (
     <div className={s.reviewRow}>
       <button
@@ -28,45 +34,45 @@ export function ReviewRow({
       >
         <span className={s.reviewName}>{review.name}</span>
         <span className={s.reviewAnchor}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/icons/categories/${review.anchor.toLowerCase()}.svg`}
-            alt=""
-            className={s.reviewAnchorIcon}
-          />
-          {review.anchor}
+          {review.anchor.iconSlug && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`/icons/categories/${review.anchor.iconSlug}.svg`}
+              alt=""
+              className={s.reviewAnchorIcon}
+            />
+          )}
+          {review.anchor.label}
         </span>
-        <span className={s.reviewNumber}>{review.number}</span>
+        <span className={s.reviewNumber}>{review.anchor.number}</span>
         <span className={s.reviewProduct}>{review.product}</span>
         <span className={s.reviewRating}>{formatRating(review.rating)} / 5</span>
         <span className={s.reviewToggle} aria-hidden="true">
           {isOpen ? "–" : "+"}
         </span>
       </button>
-      {isOpen && (
-        <div className={s.reviewDetail}>
-          <dl className={s.reviewMeta}>
-            <div>
-              <dt>Age</dt>
-              <dd>{review.age}</dd>
-            </div>
-            <div>
-              <dt>Hair Length</dt>
-              <dd>{review.hairLength}</dd>
-            </div>
-            <div>
-              <dt>Hair Type</dt>
-              <dd>{review.hairType}</dd>
-            </div>
-            <div>
-              <dt>Heat Type</dt>
-              <dd>{review.heatType}</dd>
-            </div>
-          </dl>
-          <p className={s.reviewLabel}>Review</p>
-          <p className={s.reviewBody}>{DEMO_REVIEW_BODY}</p>
+      {/* Always rendered so it can animate: the wrapper's grid row
+          transitions 0fr -> 1fr (smooth height to auto), see
+          .reviewDetailWrap in page.module.css. inert keeps the collapsed
+          content out of tab order / screen readers. */}
+      <div className={s.reviewDetailWrap} data-open={isOpen} inert={!isOpen}>
+        <div className={s.reviewDetailInner}>
+          <div className={s.reviewDetail}>
+            {meta.length > 0 && (
+              <dl className={s.reviewMeta}>
+                {meta.map(([label, value]) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+            <p className={s.reviewLabel}>Review</p>
+            <p className={s.reviewBody}>{review.body}</p>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

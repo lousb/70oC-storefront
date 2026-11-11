@@ -1,5 +1,6 @@
 import {
   AsteriskIcon,
+  CommentIcon,
   CubeIcon,
   DocumentTextIcon,
   EditIcon,
@@ -32,6 +33,7 @@ export const structure: StructureResolver = (S, _) =>
       S.divider(),
       S.documentTypeListItem("collection").title("Collections").icon(CubeIcon),
       S.documentTypeListItem("product").title("Products").icon(AsteriskIcon),
+      S.documentTypeListItem("review").title("Reviews").icon(CommentIcon),
       S.divider(),
       singletonListItem(S, SINGLETONS.settings),
     ]);

@@ -251,6 +251,35 @@ export const MORE_PRODUCTS_QUERY = defineQuery(`
   }
 `);
 
+// Site-wide reviews: the same list shows on every product page. Each
+// review's Anchor + Number come from the product it was left for.
+// Published only (drafts never show), newest first.
+export const ALL_REVIEWS_QUERY = defineQuery(`
+  *[_type == "review" && !(_id in path("drafts.**"))]
+    | order(coalesce(date, _createdAt) desc) {
+    _id,
+    name,
+    rating,
+    body,
+    age,
+    hairLength,
+    hairType,
+    heatType,
+    "productTitle": product->store.title,
+    "variantTitle": variant->store.title,
+    "category": product->category,
+    "categoryPosition": select(
+      defined(product->category) => count(*[
+        _type == "product" &&
+        category == ^.product->category &&
+        defined(store.slug.current) &&
+        store.isDeleted != true &&
+        _createdAt < ^.product->_createdAt
+      ]) + 1
+    ),
+  }
+`);
+
 export const PRODUCT_QUERY = defineQuery(`
   *[_type == "product" && store.slug.current == $slug] [0] {
     _type,
