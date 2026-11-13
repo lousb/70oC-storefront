@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Product, ProductVariant } from "../../shopify/types";
 import { useProduct } from "../products/[slug]/product-context";
-import { useCart } from "./cart-context";
+import { CART_OPEN_EVENT, useCart } from "./cart-context";
 import s from "../products/[slug]/page.module.css";
 
 export function AddToCart({ product }: { product: Product }) {
@@ -32,6 +32,8 @@ export function AddToCart({ product }: { product: Product }) {
     setTimeout(() => setAdded(false), 2000);
     setTick(true);
     setTimeout(() => setTick(false), 1000);
+    // Pop the cart out once the "Added" label has had a beat to show
+    setTimeout(() => window.dispatchEvent(new Event(CART_OPEN_EVENT)), 350);
   };
 
   const disabled = !availableForSale || !selectedVariantId;

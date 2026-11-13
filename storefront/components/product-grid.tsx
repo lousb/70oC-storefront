@@ -22,7 +22,7 @@ export function ProductGrid({
   /** Anchor display names, in Home order (see lib/anchors.ts). */
   anchors: string[];
 }) {
-  const [view, setView] = useState<View>(1);
+  const [view, setView] = useState<View>(2);
   const [anchor, setAnchor] = useState<string | null>(null);
   const [anchorOpen, setAnchorOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);

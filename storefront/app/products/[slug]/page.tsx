@@ -307,8 +307,12 @@ export default async function Page(props: Props) {
                       // actually rendered, it should stay at the panel's
                       // 12px description size rather than picking up
                       // .panelContent's desktop 14px bump (page.module.css).
+                      // HTML markup, not a typed text field: newlines in
+                      // the markup aren't meant to show, so it opts out of
+                      // body's pre-line (styles/globals.css).
                       <div
                         className={s.editorialDescription}
+                        style={{ whiteSpace: "normal" }}
                         dangerouslySetInnerHTML={{
                           __html: product.descriptionHtml ?? "",
                         }}

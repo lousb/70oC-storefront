@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { StoryCard, type DemoStory } from "./story-card";
+import { StoryCard, type Story } from "./story-card";
 import s from "./story-grid.module.css";
 
 export function StoryGrid({
   stories,
   anchors: ANCHORS,
 }: {
-  stories: DemoStory[];
+  stories: Story[];
   /** Anchor display names, in Home order (see lib/anchors.ts). */
   anchors: string[];
 }) {
@@ -17,7 +17,8 @@ export function StoryGrid({
   const [topic, setTopic] = useState<string | null>(null);
   const [topicOpen, setTopicOpen] = useState(false);
 
-  const topics = Array.from(new Set(stories.map((s) => s.topic)));
+  // Only real topics (Sanity posts have none yet) - the filter hides if there are none.
+  const topics = Array.from(new Set(stories.map((s) => s.topic).filter((t): t is string => !!t)));
 
   const filtered = stories.filter(
     (story) =>
@@ -68,7 +69,7 @@ export function StoryGrid({
           )}
         </div>
 
-        <div className={s.barGroup}>
+        <div className={s.barGroup} style={topics.length === 0 ? { visibility: "hidden" } : undefined}>
           <button
             type="button"
             className={`${s.barTrigger} ${s.plusTrigger}`}

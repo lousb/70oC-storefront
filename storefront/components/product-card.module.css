@@ -70,3 +70,9 @@
 .price {
   flex-shrink: 0;
 }
+
+/* reset.css underlines every link on hover; the card shouldn't be. */
+.card,
+.card:hover {
+  text-decoration: none;
+}

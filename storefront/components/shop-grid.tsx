@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImageBlock } from "./image-block";
 import { ProductBlock } from "./product-block";
+import { renderTextLines, splitTextLines } from "../utils/text-lines";
 
 type DesktopColumnOption = 3 | 4 | 8;
 type MobileColumnOption = 1 | 2;
@@ -38,7 +39,8 @@ export function ShopGrid({
   const [visibleWords, setVisibleWords] = useState(0);
   const [gridReady, setGridReady] = useState(false);
   const isFirst = useRef(true);
-  const words = description ? description.split(" ") : [];
+  // Lines of words, so the reveal keeps the line breaks typed in Sanity.
+  const { lines: descriptionLines, wordCount } = splitTextLines(description);
 
   useEffect(() => {
     const mobile = isMobileViewport();
@@ -88,7 +90,7 @@ export function ShopGrid({
   useEffect(() => {
     if (!mounted) return;
 
-    if (words.length === 0) {
+    if (wordCount === 0) {
       const t = setTimeout(() => setGridReady(true), 100);
       return () => clearTimeout(t);
     }
@@ -97,14 +99,14 @@ export function ShopGrid({
     const interval = setInterval(() => {
       wordIndex += 1;
       setVisibleWords(wordIndex);
-      if (wordIndex >= words.length) {
+      if (wordIndex >= wordCount) {
         clearInterval(interval);
         setTimeout(() => setGridReady(true), 200);
       }
     }, 80);
 
     return () => clearInterval(interval);
-  }, [mounted]);
+  }, [mounted, wordCount]);
 
   const handleSet = (val: ColumnOption) => {
     if (val === columns) return;
@@ -186,15 +188,13 @@ export function ShopGrid({
         </div>
 
         <div>
-          {words.length > 0 && (
+          {wordCount > 0 && (
             <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.6 }}>
-              {words.map((word, i) => (
+              {renderTextLines(descriptionLines, (word) => (
                 <span
-                  key={i}
-                  style={{ visibility: i < visibleWords ? "visible" : "hidden" }}
+                  style={{ visibility: word.index < visibleWords ? "visible" : "hidden" }}
                 >
-                  {word}
-                  {i < words.length - 1 ? " " : ""}
+                  {word.text}
                 </span>
               ))}
             </p>

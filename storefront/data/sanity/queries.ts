@@ -417,11 +417,12 @@ export const ARCHIVE_QUERY = defineQuery(`
 `);
 
 export const ALL_POSTS_QUERY = defineQuery(`
-  *[_type == "post"] | order(date desc){
+  *[_type == "post" && defined(slug.current)] | order(date desc){
     _id,
     title,
     "slug": slug.current,
     authors,
+    credits[]{role, name},
     date,
     readDuration,
     category,

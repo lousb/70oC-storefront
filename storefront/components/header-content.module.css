@@ -242,3 +242,11 @@
      bottom group doesn't jump. */
   min-height: 1.35em;
 }
+
+/* reset.css underlines every link on hover; the main menu (desktop nav
+   stack + mobile menu panel) uses opacity for hover instead. */
+.navLink:hover,
+.menuNavLink:hover,
+.menuInfoLinks a:hover {
+  text-decoration: none;
+}

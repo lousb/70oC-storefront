@@ -20,6 +20,7 @@ import { resolveOpenGraphImage } from "../sanity/utils";
 import { handleError } from "./client-utils";
 
 import GridOverlay from "../components/grid-overlay";
+import { FogHoverOverlay } from "../components/lab/fog-hover/fog-hover-overlay";
 import { EntranceOverlay } from "../components/entrance-overlay";
 import { ConditionalFooter } from "../components/conditional-footer";
 import { Footer } from "../components/footer";
@@ -102,6 +103,8 @@ export default async function RootLayout({
         <EntranceOverlay />
         {/* Dev aid: Option/Alt + G toggles a red grid overlay to check layout against the column grid. */}
         <GridOverlay />
+        {/* Test aid: add ?fog-hover to any URL for the sauna fog over the site (?fog-hover=off to stop). Loads nothing unless switched on. */}
+        <FogHoverOverlay />
         {/* Floating, fixed "70°C" wordmark — first piece of the header. */}
         <FloatingLogo />
         {/* The <Toaster> component is responsible for rendering toast notifications used in /app/client-utils.ts and /app/components/DraftModeToast.tsx */}

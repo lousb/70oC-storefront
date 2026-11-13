@@ -1,8 +1,9 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import s from "./entrance-overlay.module.css";
+import { renderTextLines, splitTextLines } from "../utils/text-lines";
 
 // Basic full-screen intro — mounted once in the root layout, so (per how
 // the App Router works) its mount effect only fires on a real browser
@@ -16,7 +17,9 @@ import s from "./entrance-overlay.module.css";
 // fades out.
 const SENTENCE =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas tristique posuere velit, et feugiat lacus tempor non.";
-const WORDS = SENTENCE.split(" ");
+// Lines of words (utils/text-lines.tsx), so a "\n" in the sentence -
+// or a Sanity field swapped in later - keeps its line breaks.
+const { lines: LINES, wordCount: WORD_COUNT } = splitTextLines(SENTENCE);
 
 const WORD_STAGGER_MS = 54; // delay between each word starting its reveal
 const WORD_REVEAL_MS = 600; // must match .word's transition duration in the CSS
@@ -27,7 +30,7 @@ const FADE_MS = 780; // must match .overlay's transition duration in the CSS bel
 // transition-delay in the CSS.
 const TEXT_FADE_MS = FADE_MS / 2;
 // Time from the reveal starting until the last word has fully landed.
-const REVEAL_TOTAL_MS = (WORDS.length - 1) * WORD_STAGGER_MS + WORD_REVEAL_MS;
+const REVEAL_TOTAL_MS = (WORD_COUNT - 1) * WORD_STAGGER_MS + WORD_REVEAL_MS;
 
 export function EntranceOverlay() {
   const pathname = usePathname();
@@ -88,16 +91,13 @@ export function EntranceOverlay() {
           (absolutely positioned) so it doesn't shift the sentence up. */}
       <div className={s.content} data-hiding={hiding}>
       <p className={s.text} data-revealed={revealed} aria-hidden="true">
-        {WORDS.map((word, i) => (
-          <Fragment key={i}>
-            <span
-              className={s.word}
-              style={{ transitionDelay: `${i * WORD_STAGGER_MS}ms` }}
-            >
-              {word}
-            </span>
-            {i < WORDS.length - 1 ? " " : ""}
-          </Fragment>
+        {renderTextLines(LINES, (word) => (
+          <span
+            className={s.word}
+            style={{ transitionDelay: `${word.index * WORD_STAGGER_MS}ms` }}
+          >
+            {word.text}
+          </span>
         ))}
       </p>
       <button

@@ -13,6 +13,9 @@ import { Cart, CartItem, Product, ProductVariant } from "../../shopify/types";
 
 export const CART_STORAGE_KEY = "70oc_shopify_cart";
 
+// Fired on window to pop the cart open (e.g. after Add to Cart) - see cart.tsx.
+export const CART_OPEN_EVENT = "70oc:cart-open";
+
 type UpdateType = "plus" | "minus" | "delete";
 
 type CartAction =

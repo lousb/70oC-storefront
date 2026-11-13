@@ -45,10 +45,10 @@
   --header-z-index: 10;
   --title-z-index: 9;
 
-  /* Base typography — 16px everywhere. --font-abc-rom is set on <html>
+  /* Base typography — 14px max everywhere (mobile 12px, below). --font-abc-rom is set on <html>
      in app/layout.tsx via next/font/local, loading the ABC Rom trial
      file from public/fonts/. */
-  --font-size: 16px;
+  --font-size: 14px;
   --font-sans-serif: var(--font-abc-rom), "Arial", ui-sans-serif, system-ui, sans-serif;
 
   /* Universal column grid, mobile-first.
@@ -116,6 +116,14 @@ body {
   background-color: var(--color-bg);
   font-weight: 400;
   letter-spacing: 0.0em;
+  /* Sanity text fields render with their line breaks exactly as typed in
+     the Studio: a single break starts a new line, an empty line leaves a
+     blank line. Inherited, so any component rendering a field as-is (now
+     or later) gets it for free. Word-split components keep the breaks via
+     utils/text-lines.tsx. HTML markup (Shopify descriptionHtml) opts back
+     out to normal, since newlines in markup aren't meant to show. The
+     Studio is a separate app (../studio) and never loads this file. */
+  white-space: pre-line;
 }
 .main-grid {
   display: grid;
@@ -241,7 +249,7 @@ mux-player {
 }
 .blog-post-page p, .blog-post-page h1{
   width:75%;
-  font-size: 1.2rem;
+  font-size: 14px;
   padding-bottom:1ch;
 }
 
@@ -267,4 +275,15 @@ mux-player {
   body:has([data-mobile-cart-bar]) {
     padding-bottom: calc(var(--mobile-cart-btn-h) + 40px + env(safe-area-inset-bottom));
   }
+}
+
+/* No text above 14px: headings take the body size (browser defaults would
+   make an <h1> 2x, <h2> 1.5x...). Classes that set their own size still win. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
 }

@@ -14,10 +14,11 @@ import type { ReactNode } from "react";
 // scroll-snap sequence (see app/page.tsx) rather than picking up this
 // global one — so it's excluded here to avoid a second, redundant footer.
 // Studio is its own app shell and never wants the storefront footer.
+// /lab pages are full-screen test pages for experiments.
 export function ConditionalFooter({ footer }: { footer: ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === "/" || pathname.startsWith("/studio")) {
+  if (pathname === "/" || pathname.startsWith("/studio") || pathname.startsWith("/lab")) {
     return null;
   }
 

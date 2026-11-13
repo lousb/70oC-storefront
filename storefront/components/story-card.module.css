@@ -1,4 +1,5 @@
-.card {
+.card,
+.card:hover {
   display: block;
   text-decoration: none;
   color: inherit;
@@ -13,6 +14,34 @@
   aspect-ratio: 0.85;
   padding: 20px;
   color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Real cover image/video, behind the date/title/topic */
+.media {
+  position: absolute;
+  inset: 0;
+}
+
+/* Light top/bottom shade so the white text reads on any photo */
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0) 70%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  pointer-events: none;
+}
+
+.date,
+.title,
+.topic {
+  position: relative;
 }
 
 .date {
@@ -21,7 +50,7 @@
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 0.875rem; /* 14px */
   line-height: 1.25;
 }
 

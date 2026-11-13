@@ -10,7 +10,7 @@ import { DEFAULT_OPTION } from "../../shopify/constants";
 import { CartItem } from "../../shopify/types";
 import { createUrl } from "../../shopify/utils";
 import { redirectToCheckout, saveCart } from "./cart-actions";
-import { useCart } from "./cart-context";
+import { CART_OPEN_EVENT, useCart } from "./cart-context";
 import { useProductAnchors } from "./product-anchors";
 import s from "./cart.module.css";
 
@@ -26,7 +26,7 @@ export function Cart() {
   // the corner triggers rendered in header-content.tsx ("Cart (n)" /
   // "Close", and "Menu" for cross-navigation) can open/close it and
   // switch straight to the Menu panel — see mobile-panel-context.tsx.
-  const { activePanel, close: closeMobilePanel } = useMobilePanel();
+  const { activePanel, close: closeMobilePanel, openCart: openMobileCart } = useMobilePanel();
   const [desktopOpen, setDesktopOpen] = useState(false);
   const isMobileCartOpen = activePanel === "cart";
   const isOpen = desktopOpen || isMobileCartOpen;
@@ -58,6 +58,17 @@ export function Cart() {
     setDesktopOpen(false);
     if (isMobileCartOpen) closeMobilePanel();
   };
+
+  // Pop out when something's added (add-to-cart.tsx): the side drawer on
+  // desktop, the full-screen cart panel on mobile.
+  useEffect(() => {
+    const handleOpen = () => {
+      if (window.matchMedia("(max-width: 768px)").matches) openMobileCart();
+      else setDesktopOpen(true);
+    };
+    window.addEventListener(CART_OPEN_EVENT, handleOpen);
+    return () => window.removeEventListener(CART_OPEN_EVENT, handleOpen);
+  }, [openMobileCart]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
