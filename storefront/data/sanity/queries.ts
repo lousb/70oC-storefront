@@ -27,8 +27,8 @@ const pageBuilderFields = /* groq */ `
     _key,
     _type,
     "columnSpan": select(_type == "imageBlock" => coalesce(columnSpan, 1), 1),
-    // productBlock
-    "product": select(_type == "productBlock" => product-> {
+    // productBlock (only live products: Shopify drafts / deleted render nothing)
+    "product": select(_type == "productBlock" && product->store.status == "active" && product->store.isDeleted != true => product-> {
       "title": store.title,
       "slug": store.slug.current,
       "price": store.priceRange.minVariantPrice,
@@ -224,7 +224,7 @@ export const ALL_COLLECTIONS_QUERY = defineQuery(`
 `);
 
 export const ALL_PRODUCTS_QUERY = defineQuery(`
-  *[_type == "product" && defined(store.slug.current) && !store.isDeleted] | order(store.title asc) {
+  *[_type == "product" && defined(store.slug.current) && !store.isDeleted && store.status == "active"] | order(store.title asc) {
     _id,
     "title": store.title,
     "slug": store.slug.current,
@@ -237,6 +237,7 @@ export const ALL_PRODUCTS_QUERY = defineQuery(`
         category == ^.category &&
         defined(store.slug.current) &&
         store.isDeleted != true &&
+        store.status == "active" &&
         _createdAt < ^._createdAt
       ]) + 1
     ),
@@ -246,7 +247,7 @@ export const ALL_PRODUCTS_QUERY = defineQuery(`
 `);
 
 export const MORE_PRODUCTS_QUERY = defineQuery(`
-  *[_type == "product" && _id != $skip && defined(store.slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {
+  *[_type == "product" && _id != $skip && defined(store.slug.current) && store.status == "active" && store.isDeleted != true] | order(date desc, _updatedAt desc) [0...$limit] {
     ...,
   }
 `);
@@ -274,6 +275,7 @@ export const ALL_REVIEWS_QUERY = defineQuery(`
         category == ^.product->category &&
         defined(store.slug.current) &&
         store.isDeleted != true &&
+        store.status == "active" &&
         _createdAt < ^.product->_createdAt
       ]) + 1
     ),
@@ -299,10 +301,11 @@ export const PRODUCT_QUERY = defineQuery(`
         category == ^.category &&
         defined(store.slug.current) &&
         store.isDeleted != true &&
+        store.status == "active" &&
         _createdAt < ^._createdAt
       ]) + 1
     ),
-    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category)]->{
+    "relatedProducts": relatedProducts[defined(@->store.slug.current) && defined(@->category) && @->store.status == "active" && @->store.isDeleted != true]->{
       "slug": store.slug.current,
       "title": store.title,
       category,
@@ -313,6 +316,8 @@ export const PRODUCT_QUERY = defineQuery(`
     shipping,
     whereWeLive,
     "status": select(_id in path("drafts.**") => "draft", "published"),
+    // Shopify product status: only "active" products show on the storefront
+    "isActive": store.status == "active" && store.isDeleted != true,
     "name": coalesce(name, "Untitled Page"),
     "slug": store.slug.current,
    "gallery": gallery[] {
@@ -344,7 +349,7 @@ export const PRODUCT_METADATA_QUERY = defineQuery(`
 `);
 
 export const ALL_PRODUCT_PAGES_SLUGS = defineQuery(`
-  *[_type == "product" && defined(store.slug.current)]
+  *[_type == "product" && defined(store.slug.current) && store.status == "active" && store.isDeleted != true]
   {"slug": store.slug.current}
 `);
 

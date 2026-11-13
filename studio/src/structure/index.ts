@@ -1,7 +1,6 @@
 import {
   AsteriskIcon,
   CommentIcon,
-  CubeIcon,
   DocumentTextIcon,
   EditIcon,
 } from "@sanity/icons";
@@ -18,6 +17,14 @@ import { singletonListItem, SINGLETONS } from "./singletons";
  * usable — Products reference it via How To Use / Shipping / Where We Live,
  * and those reference fields can create new ones inline — it's just kept out
  * of the sidebar so it doesn't compete with Products as a place to manage content.
+ *
+ * Also hidden from the sidebar (not deleted - the documents and schemas are
+ * untouched, so anything referencing them keeps working): the Shop and Archive
+ * singletons, and Collections.
+ *
+ * Products lists everything synced from Shopify, including Shopify drafts
+ * (they stay editable here, and are hidden on the storefront by the queries in
+ * storefront/data/sanity/queries.ts). Products deleted in Shopify are left out.
  */
 
 export const structure: StructureResolver = (S, _) =>
@@ -25,14 +32,20 @@ export const structure: StructureResolver = (S, _) =>
     .title("Storefront Content")
     .items([
       singletonListItem(S, SINGLETONS.home),
-      singletonListItem(S, SINGLETONS.shop),
-      singletonListItem(S, SINGLETONS.archive),
       S.documentTypeListItem("page").title("Pages").icon(DocumentTextIcon),
       S.divider(),
       S.documentTypeListItem("post").title("Stories").icon(EditIcon),
       S.divider(),
-      S.documentTypeListItem("collection").title("Collections").icon(CubeIcon),
-      S.documentTypeListItem("product").title("Products").icon(AsteriskIcon),
+      S.listItem()
+        .title("Products")
+        .icon(AsteriskIcon)
+        .schemaType("product")
+        .child(
+          S.documentTypeList("product")
+            .title("Products")
+            .apiVersion("2024-10-01")
+            .filter('_type == "product" && store.isDeleted != true'),
+        ),
       S.documentTypeListItem("review").title("Reviews").icon(CommentIcon),
       S.divider(),
       singletonListItem(S, SINGLETONS.settings),

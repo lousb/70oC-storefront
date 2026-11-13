@@ -69,7 +69,8 @@ export default async function Page(props: Props) {
 
   const product = await getProduct({ handle: params.slug, tags });
 
-  if (!product?.id) {
+  // Shopify drafts (and deleted products) are hidden on the storefront
+  if (!product?.id || (productPage as any)?.isActive === false) {
     return notFound();
   }
 

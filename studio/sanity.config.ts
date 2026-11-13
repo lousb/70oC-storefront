@@ -44,6 +44,8 @@ export default defineConfig({
   projectId,
   dataset,
   plugins: [
+    // Tool order = order in the Studio's top bar: Structure first, then Preview
+    structureTool({ structure }),
     presentationTool({
       title: "Preview",
       previewUrl: {
@@ -126,7 +128,6 @@ export default defineConfig({
         },
       },
     }),
-    structureTool({ structure }),
     visionTool({ title: "API" }),
     colorInput(),
     customDocumentActions(),
